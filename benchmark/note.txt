@@ -1,0 +1,81 @@
+Setup:
+- Ubuntu 18.04 64 bit (kernel >= 4.14)
+- BCC lastest stable: https://github.com/iovisor/bcc
+- Other python module needed: pyroute2, prometheus_client
+- Prometheus sever
+
+Run:
+- create veth pair veth0-veth1
+- run collector in veth1: sudo python BPFCollector.py
+- use INTgen to generate sample INT report to veth0
+
+----------------------------------------------------
+sysctl net/core/bpf_jit_enable=1
+
+ip link add dev veth0 type veth peer name veth1
+ip link set dev veth0 up
+ip link set dev veth1 up
+
+cat /sys/kernel/debug/tracing/trace_pipe
+
+influxDB 1.2.4:
+https://dl.influxdata.com/influxdb/releases/influxdb_1.2.4_amd64.deb
+
+run:
+sudo systemctl start influxdb
+
+start grafana:
+systemctl daemon-reload
+systemctl start grafana-server
+systemctl status grafana-server
+
+systemctl restart grafana-server
+
+# grafana web
+localhost:3000
+username: root, pw: root
+
+grafana InfluxDB:
+When add InfluxDB source, no authentication, just database user and password
+Use proxy instead of direct https://community.grafana.com/t/cant-see-influxdb-data-in-grafana/1417
+
+
+tcpreplay -i vtap0 -tK --loop 50000 --unique-ip int_rp.pcap
+
+
+# XDP virtio
+https://www.slideshare.net/lcplcp1/xdp-and-ebpfmaps
+#log 
+/var/log/libvirt/qemu/<domain>.log
+#vrish edit
+<driver name='vhost' queues='2' rx_queue_size='1024' tx_queue_size='1024'/>
+OR: but above is better (virtual offloading is on, so less CPU usage in guest)
+<driver name='vhost' queues='2' rx_queue_size='1024' tx_queue_size='1024'>
+        <host tso4='off' tso6='off' ecn='off' ufo='off'/> 
+        <guest tso4='off' tso6='off' ecn='off' ufo='off'/> 
+      </driver>
+
+#pktgen
+./pktgen.sh -i vtap0 -m fe:54:00:ed:29:ca -d 10.0.0.1 -s 512 -v -c 0
+cat /proc/net/pktgen/vtap0
+
+#netmap
+https://sgros-students.blogspot.kr/2016/05/installing-and-testing-netmap.html
+# netmap pkt-gen
+cd netmap/apps/pkt-gen
+make WITH_PCAP=1
+
+install
+ - sudo insmod netmap.ko
+
+tcpreplay netmap
+- download from release (4.3 beta), not from git https://github.com/appneta/tcpreplay/releases
+- ./autogen.sh
+- ./configure --with-netmap=/home/tu/netmap/LINUX --disable-local-libopts
+- install libtool if error
+
+# disable spectre and meltdown patch
+https://thinkpads.org/software/2018/04/02/mitigating-the-mitigation-spectre-meltdown.html
+
+# why use vhost
+https://www.linux-kvm.org/images/8/82/Vhost_virtio_net_need_for_speed_2.odp

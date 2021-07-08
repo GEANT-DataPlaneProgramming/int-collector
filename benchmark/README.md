@@ -1,0 +1,1 @@
+For performance evaluation. Require proper (and complicated) setup first. Benchmark script heavily uses `xdotool`, which is (probaly) not a good choice.
