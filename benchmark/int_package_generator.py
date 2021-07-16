@@ -158,7 +158,8 @@ if __name__ == "__main__":
         """
         int_metadata = [switch_id, ing_egr_port_id, hop_latency, queue_id_occups,
                         ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes]
-
+        int_metadata = int_metadata * args.hops
+        # print(int_metadata)
 
         counter = 1
         try:
@@ -179,9 +180,11 @@ if __name__ == "__main__":
                 time.sleep(2)
 
                 counter += 1
-                int_metadata[2] = hop_latency + counter * 10
-                int_metadata[4] = ingress_timestamp + counter * 10
-                int_metadata[5] = ingress_timestamp + counter * 10
+                for x in range(1,args.hops+1):
+                    int_metadata[2*x] = hop_latency + counter * 10 + x * 10
+                    int_metadata[4*x] = ingress_timestamp + counter * 10 + x * 10
+                    int_metadata[5*x] = egress_timestamp + counter * 10 + x * 10
+                # print(int_metadata)
 
         except KeyboardInterrupt:
             pass
