@@ -86,43 +86,102 @@ class INT_v10(Packet):
         ]
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description='INT Telemetry Report pkt gen.')
+    parser.add_argument("-c", "--constant", action='store_true',
+        help="Generating two packets with constant values")
+    parser.add_argument("-l", "--linear", action='store_true',
+        help="Generates packets with linearly growing values")
+    parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
+        help="Number of hops in packet. Max - 6.")
+  
+    args = parser.parse_args()
+
 
     iface = "veth_0"
 
-    p0 = Ether()/ \
-        IP(tos=0x17<<2)/ \
-        UDP(sport=5000, dport=8086)/ \
-        TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
-        Ether()/ \
-        IP(src="10.0.0.1", dst="10.0.0.2")/ \
-        UDP(sport=5000, dport=5000)/ \
-        INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-            INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
-            5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-            6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
-        )
+    if args.constant:
 
-    p1 = Ether()/ \
-        IP(tos=0x17<<2)/ \
-        UDP(sport=5000, dport=8086)/ \
-        TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
-        Ether()/ \
-        IP(src="10.0.0.1", dst="10.0.0.2")/ \
-        UDP(sport=5000, dport=5000)/ \
-        INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-            INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
-            5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-            6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
-        )
+        p0 = Ether()/ \
+            IP(tos=0x17<<2)/ \
+            UDP(sport=5000, dport=8086)/ \
+            TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
+            Ether()/ \
+            IP(src="10.0.0.1", dst="10.0.0.2")/ \
+            UDP(sport=5000, dport=5000)/ \
+            INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
+                5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
+                6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+            )
 
-    iface = "veth_0"
+        p1 = Ether()/ \
+            IP(tos=0x17<<2)/ \
+            UDP(sport=5000, dport=8086)/ \
+            TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
+            Ether()/ \
+            IP(src="10.0.0.1", dst="10.0.0.2")/ \
+            UDP(sport=5000, dport=5000)/ \
+            INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
+                5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
+                6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+            )
 
-    try:
-        while 1:
-            sendp(p0, iface=iface)
-            time.sleep(2)
-            sendp(p1, iface=iface)
-            time.sleep(2)
+        try:
+            while 1:
+                sendp(p0, iface=iface)
+                time.sleep(2)
+                sendp(p1, iface=iface)
+                time.sleep(2)
 
-    except KeyboardInterrupt:
-        pass
+        except KeyboardInterrupt:
+            pass
+
+    if args.linear:
+        
+        int_length = args.hops * 8 + 3
+
+        switch_id = 1
+        ing_egr_port_id = 2 << 16 | 3  #ingress_port << 16 | egr_port
+        hop_latency = 20
+        queue_id_occups = 5 <<16 | 600 #queue_id << 16 | queue_occups
+        ingress_timestamp = 700
+        egress_timestamp = 15242
+        lv2_in_e_port = 5<<15|1000
+        tx_utilizes = 1
+
+
+        """
+        INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
+                        ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
+        """
+        int_metadata = [switch_id, ing_egr_port_id, hop_latency, queue_id_occups,
+                        ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes]
+
+
+        counter = 1
+        try:
+            while 1:
+                
+                p = Ether()/ \
+                    IP(tos=0x17<<2)/ \
+                    UDP(sport=5000, dport=8086)/ \
+                    TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+                    Ether()/ \
+                    IP(src="10.0.0.1", dst="10.0.0.2")/ \
+                    UDP(sport=5000, dport=5000)/ \
+                    INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                        INTMetadata= int_metadata
+                    )
+
+                sendp(p, iface=iface)
+                time.sleep(2)
+
+                counter += 1
+                int_metadata[2] = hop_latency + counter * 10
+                int_metadata[4] = ingress_timestamp + counter * 10
+                int_metadata[5] = ingress_timestamp + counter * 10
+
+        except KeyboardInterrupt:
+            pass
