@@ -180,10 +180,10 @@ if __name__ == "__main__":
                 time.sleep(2)
 
                 counter += 1
-                for x in range(1,args.hops+1):
-                    int_metadata[2*x] = hop_latency + counter * 10 + x * 10
-                    int_metadata[4*x] = ingress_timestamp + counter * 10 + x * 10
-                    int_metadata[5*x] = egress_timestamp + counter * 10 + x * 10
+                for x in range(args.hops):
+                    int_metadata[2+x*8] = hop_latency + counter * 10 + x * 10
+                    int_metadata[4+x*8] = ingress_timestamp + counter * 10 + x * 10
+                    int_metadata[5+x*8] = egress_timestamp + counter * 10 + x * 10
                 # print(int_metadata)
 
         except KeyboardInterrupt:
