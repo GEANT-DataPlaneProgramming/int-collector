@@ -167,16 +167,19 @@ class InDBCollector(object):
         flow_key = "%(srcip)s, %(dstip)s, %(srcp)s, %(dstp)s, %(protocol)s" % flow_id 
         reports = []
 
-        for index in range(_MAX_INT_HOP+1):
+        for index in range(_MAX_INT_HOP):
             if ingr_times[index] == 0:
                 last_hop_index = index - 1
                 last_ingr_time = ingr_times[last_hop_index]
                 break
+        else:
+            last_hop_index = 5
+            last_ingr_time = ingr_times[last_hop_index]
 
         reports.append(self.prepare_e2e_report(flow_id, ingr_times, seq_num, flow_key, last_hop_index))
 
         self.last_hop_delay = last_ingr_time
-        for index in range(last_hop_index+1):
+        for index in range(last_hop_index):
             # print(index,'\n',hop)
             reports.append(self.prepare_hop_report(flow_id, index, flow_key, hop_latencies, ingr_times))
 

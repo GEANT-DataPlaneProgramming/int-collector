@@ -177,7 +177,7 @@ if __name__ == "__main__":
                     )
 
                 sendp(p, iface=iface)
-                time.sleep(2)
+                time.sleep(1)
 
                 counter += 1
                 for x in range(args.hops):
