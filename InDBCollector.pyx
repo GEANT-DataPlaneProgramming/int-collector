@@ -127,8 +127,8 @@ class InDBCollector(object):
         # # save dstts for purpose of sink_jitter calculation
         self.last_reordering[flow_key] = seq_num
 
-        # json_object = json.dumps(json_report, indent = 4)  
-        # print("E2E - report\n",json_object)
+        json_object = json.dumps(json_report, indent = 4)  
+        print("E2E - report\n",json_object)
         return json_report
 
     def prepare_hop_report(self, flow_id, index, flow_key, hop_latencies, ingr_times):
@@ -159,8 +159,8 @@ class InDBCollector(object):
         if ingr_times[index]:
             self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
         
-        # json_object = json.dumps(json_report, indent = 4)  
-        # print("HOP - report\n",json_object)
+        json_object = json.dumps(json_report, indent = 4)  
+        print("HOP - report",index,"\n",json_object)
         return json_report
 
     def prepare_reports(self, flow_id, hop_latencies, seq_num, ingr_times, egr_times):
@@ -179,7 +179,7 @@ class InDBCollector(object):
         reports.append(self.prepare_e2e_report(flow_id, ingr_times, seq_num, flow_key, last_hop_index))
 
         self.last_hop_delay = last_ingr_time
-        for index in range(last_hop_index):
+        for index in range(last_hop_index+1):
             # print(index,'\n',hop)
             reports.append(self.prepare_hop_report(flow_id, index, flow_key, hop_latencies, ingr_times))
 
