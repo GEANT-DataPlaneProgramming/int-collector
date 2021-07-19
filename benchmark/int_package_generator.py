@@ -178,11 +178,11 @@ if __name__ == "__main__":
                         INTMetadata= int_metadata
                     )
 
-                sendp(p, iface=iface)
+                sendp(p, iface=iface, verbose=0)
                 time.sleep(args.time)
 
                 counter += 1
-                for x in range(args.hops):
+                for x in range(1,args.hops):
                     int_metadata[2+x*8] = hop_latency + counter * 10 + x * 10
                     int_metadata[4+x*8] = ingress_timestamp + counter * 10 + x * 10
                     int_metadata[5+x*8] = egress_timestamp + counter * 10 + x * 10

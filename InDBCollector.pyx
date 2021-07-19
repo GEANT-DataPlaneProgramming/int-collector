@@ -96,8 +96,8 @@ class InDBCollector(object):
     def prepare_e2e_report(self, flow_id, ingr_times, seq_num, flow_key, last_hop_index):        
         
         try:
-            origin_timestamp = ingr_times[last_hop_index]
-            destination_timestamp = ingr_times[0]
+            origin_timestamp = ingr_times[0]
+            destination_timestamp = ingr_times[last_hop_index]
         except Exception as e:
             origin_timestamp, destination_timestamp = 0, 0
         
@@ -127,8 +127,8 @@ class InDBCollector(object):
         # # save dstts for purpose of sink_jitter calculation
         self.last_reordering[flow_key] = seq_num
 
-        json_object = json.dumps(json_report, indent = 4)  
-        print("E2E - report\n",json_object)
+        # json_object = json.dumps(json_report, indent = 4)  
+        # print("E2E - report\n",json_object)
         return json_report
 
     def prepare_hop_report(self, flow_id, index, flow_key, hop_latencies, ingr_times):
@@ -159,8 +159,8 @@ class InDBCollector(object):
         if ingr_times[index]:
             self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
         
-        json_object = json.dumps(json_report, indent = 4)  
-        print("HOP - report",index,"\n",json_object)
+        # json_object = json.dumps(json_report, indent = 4)  
+        # print("HOP - report",index,"\n",json_object)
         return json_report
 
     def prepare_reports(self, flow_id, hop_latencies, seq_num, ingr_times, egr_times):
