@@ -94,8 +94,8 @@ if __name__ == "__main__":
         help="Generates packets with linearly growing values")
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
         help="Number of hops in packet. Max - 6.")
-    parser.add_argument("-t", "--time", default=1, type=float,
-        help="Waiting time for the next package")
+    parser.add_argument("-n", "--number", default=1000, type=float,
+        help="Number of generating packets per one second")
   
     args = parser.parse_args()
 
@@ -133,9 +133,9 @@ if __name__ == "__main__":
         try:
             while 1:
                 sendp(p0, iface=iface)
-                time.sleep(args.time)
+                time.sleep(1/args.number)
                 sendp(p1, iface=iface)
-                time.sleep(args.time)
+                time.sleep(1/args.number)
 
         except KeyboardInterrupt:
             pass
@@ -179,7 +179,7 @@ if __name__ == "__main__":
                     )
 
                 sendp(p, iface=iface, verbose=0)
-                time.sleep(args.time)
+                time.sleep(1/args.number)
 
                 counter += 1
                 for x in range(1,args.hops):
