@@ -1,8 +1,9 @@
 from __future__ import print_function
+from scapy import data
 from scapy.all import *
 import time
 import argparse
-
+from datetime import datetime
 '''
 header int_report_fixed_header_t {
     bit<4> ver;
@@ -85,6 +86,47 @@ class INT_v10(Packet):
         FieldListField("INTMetadata", [], XIntField("", None), count_from=lambda p:p.length - 2)
         ]
 
+def gen_packets(number_of_packets):
+
+    packets = []
+    int_length = args.hops * 8 + 3
+    switch_id = 1
+    ing_egr_port_id = 2 << 16 | 3  #ingress_port << 16 | egr_port
+    hop_latency = 20
+    queue_id_occups = 5 <<16 | 600 #queue_id << 16 | queue_occups
+    ingress_timestamp = 700
+    egress_timestamp = 15242
+    lv2_in_e_port = 5<<15|1000
+    tx_utilizes = 1
+
+    """
+    INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
+                    ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
+    """
+    int_metadata = [switch_id, ing_egr_port_id, hop_latency, queue_id_occups,
+                    ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes]
+    int_metadata = int_metadata * args.hops
+    for counter in range(0,number_of_packets):
+        p = Ether()/ \
+            IP(tos=0x17<<2)/ \
+            UDP(sport=5000, dport=8086)/ \
+            TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+            Ether()/ \
+            IP(src="10.0.0.1", dst="10.0.0.2")/ \
+            UDP(sport=5000, dport=5000)/ \
+            INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                INTMetadata = int_metadata)
+
+        packets.append(bytes(p))
+        for x in range(1,args.hops):
+            int_metadata[2+x*8] = hop_latency + counter*10 + x*10
+            int_metadata[4+x*8] = ingress_timestamp + counter * 10 + x * 10
+            int_metadata[5+x*8] = egress_timestamp + counter * 10 + x *10
+
+    return packets
+        
+    
+
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='INT Telemetry Report pkt gen.')
@@ -94,7 +136,7 @@ if __name__ == "__main__":
         help="Generates packets with linearly growing values")
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
         help="Number of hops in packet. Max - 6.")
-    parser.add_argument("-n", "--number", default=1000, type=float,
+    parser.add_argument("-n", "--number", default=1000, type=int,
         help="Number of generating packets per one second")
   
     args = parser.parse_args()
@@ -142,51 +184,23 @@ if __name__ == "__main__":
 
     if args.linear:
         
-        int_length = args.hops * 8 + 3
-
-        switch_id = 1
-        ing_egr_port_id = 2 << 16 | 3  #ingress_port << 16 | egr_port
-        hop_latency = 20
-        queue_id_occups = 5 <<16 | 600 #queue_id << 16 | queue_occups
-        ingress_timestamp = 700
-        egress_timestamp = 15242
-        lv2_in_e_port = 5<<15|1000
-        tx_utilizes = 1
-
-
-        """
-        INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
-                        ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
-        """
-        int_metadata = [switch_id, ing_egr_port_id, hop_latency, queue_id_occups,
-                        ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes]
-        int_metadata = int_metadata * args.hops
-        # print(int_metadata)
-
-        counter = 1
+        counter = 0
+        packets = gen_packets(args.number)
+        #start = datetime.now()
         try:
-            while 1:
-                
-                p = Ether()/ \
-                    IP(tos=0x17<<2)/ \
-                    UDP(sport=5000, dport=8086)/ \
-                    TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
-                    Ether()/ \
-                    IP(src="10.0.0.1", dst="10.0.0.2")/ \
-                    UDP(sport=5000, dport=5000)/ \
-                    INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                        INTMetadata= int_metadata
-                    )
-
-                sendp(p, iface=iface, verbose=0)
-                time.sleep(1/args.number)
-
-                counter += 1
-                for x in range(1,args.hops):
-                    int_metadata[2+x*8] = hop_latency + counter * 10 + x * 10
-                    int_metadata[4+x*8] = ingress_timestamp + counter * 10 + x * 10
-                    int_metadata[5+x*8] = egress_timestamp + counter * 10 + x * 10
-                # print(int_metadata)
+            # if args.number>=10000:
+                while 1:
+                    # sendp(packets, iface=iface, verbose = 0)
+                    sendpfast(packets, iface=iface, pps=args.number)
+                    # print(datetime.now()-start,': ', args.number)
+                    # start = datetime.now()
+            # else:
+                # while 1:
+                    # sendp(packets, iface=iface, verbose = 0, inter = 1/(args.number*200))
+                    # sendpfast(packets, iface=iface, pps=args.number)
+                    # print(datetime.now()-start,': ', args.number)
+                    # start = datetime.now()
+                    
 
         except KeyboardInterrupt:
             pass
