@@ -99,6 +99,7 @@ def gen_packets(number_of_packets):
     lv2_in_e_port = 5<<15|1000
     tx_utilizes = 1
 
+    list_switch_id = [1,2,3,4,5,6]
     """
     INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
                     ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
@@ -119,10 +120,11 @@ def gen_packets(number_of_packets):
 
         packets.append(bytes(p))
         for x in range(1,args.hops):
-            int_metadata[2+x*8] = hop_latency + counter*10 + x*10
-            int_metadata[4+x*8] = ingress_timestamp + counter * 10 + x * 10
-            int_metadata[5+x*8] = egress_timestamp + counter * 10 + x *10
-
+            int_metadata[2+x*8] = hop_latency + counter*1000 + x*100
+            int_metadata[4+x*8] = ingress_timestamp + counter * 1000 + x * 100
+            int_metadata[5+x*8] = egress_timestamp + counter * 1000 + x *100
+            int_metadata[0+x*8] = list_switch_id[x]
+        # print(int_metadata)
     return packets
         
     
@@ -131,7 +133,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='INT Telemetry Report pkt gen.')
     parser.add_argument("-c", "--constant", action='store_true',
-        help="Generating two packets with constant values")
+        help="Generating two packets with constant values. One per second.")
     parser.add_argument("-l", "--linear", action='store_true',
         help="Generates packets with linearly growing values")
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
@@ -146,6 +148,7 @@ if __name__ == "__main__":
 
     if args.constant:
 
+        
         p0 = Ether()/ \
             IP(tos=0x17<<2)/ \
             UDP(sport=5000, dport=8086)/ \
@@ -175,9 +178,9 @@ if __name__ == "__main__":
         try:
             while 1:
                 sendp(p0, iface=iface)
-                time.sleep(1/args.number)
+                time.sleep(1)
                 sendp(p1, iface=iface)
-                time.sleep(1/args.number)
+                time.sleep(1)
 
         except KeyboardInterrupt:
             pass
@@ -186,14 +189,16 @@ if __name__ == "__main__":
         
         counter = 0
         packets = gen_packets(args.number)
-        #start = datetime.now()
+        start = datetime.now()
         try:
             # if args.number>=10000:
                 while 1:
-                    # sendp(packets, iface=iface, verbose = 0)
+                    # for x in range(args.number):
+                        # sendp(packets[x], iface=iface, verbose = 0)
                     sendpfast(packets, iface=iface, pps=args.number)
-                    # print(datetime.now()-start,': ', args.number)
-                    # start = datetime.now()
+                        # if x%args.number==0:
+                            # print(f"Sent {args.number} packages in {datetime.now()-start}: {args.number}")
+                        # start = datetime.now()
             # else:
                 # while 1:
                     # sendp(packets, iface=iface, verbose = 0, inter = 1/(args.number*200))

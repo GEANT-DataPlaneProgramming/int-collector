@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
         while not push_stop_flag.is_set():
 
-            time.sleep(args.event_period)
+            # time.sleep(args.event_period)
 
             collector.lock.acquire()
             data = collector.event_data
@@ -81,6 +81,7 @@ if __name__ == "__main__":
             if data:
                 collector.client.write_points(points=data[0])
                 # print(type(data))
+                # print(data)
                 # for x in range(len(data[0])):
                     # collector.client.write_points(points=data[0][x])
                     # points=data[0][x]
