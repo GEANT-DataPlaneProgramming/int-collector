@@ -21,6 +21,6 @@ if __name__ == "__main__":
 
     while 1:
         start = datetime.now()
-        pak = sniff(iface = iface,count=100)
+        pak = sniff(iface = iface, count=args.number)
         print("Time:", datetime.now()-start,"Number of packages:", len(pak))
         time.sleep(1)
