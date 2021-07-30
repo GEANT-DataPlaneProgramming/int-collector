@@ -223,8 +223,8 @@ if __name__ == "__main__":
             # if args.number>=10000:
                 while 1:
                     # for x in range(args.number):
-                    sendp(packets, iface=iface, verbose = 0)
-                    # sendpfast(packets, iface=iface, pps=args.number)
+                    # sendp(packets, iface=iface, verbose = 0)
+                    sendpfast(packets, iface=iface, pps=args.number)
                         # if x%args.number==0:
                             # print(f"Sent {args.number} packages in {datetime.now()-start}: {args.number}")
                         # start = datetime.now()
