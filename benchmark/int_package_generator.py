@@ -141,17 +141,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='INT Telemetry Report pkt gen.')
     parser.add_argument("-c", "--constant", action='store_true',
         help="Generating two packets with constant values. One per second.")
-    parser.add_argument("-l", "--linear", action='store_true',
+    parser.add_argument("-l", "--linear", action = 'store_true',
         help="Generates packets with linearly growing values")
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
         help="Number of hops in packet. Max - 6.")
+    parser.add_argument("-i","--interface", type=str, required=True,
+        help="Listening network interface")
     parser.add_argument("-n", "--number", default=1000, type=int,
         help="Number of generating packets per one second")
   
     args = parser.parse_args()
 
 
-    iface = "VirtualBox Host-Only Ethernet Adapter"
+    iface = args.interface
 
     if args.constant:
 
