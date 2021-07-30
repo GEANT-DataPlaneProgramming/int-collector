@@ -108,16 +108,23 @@ def gen_packets(number_of_packets):
                     ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes]
     int_metadata = int_metadata * args.hops
     for counter in range(0,number_of_packets):
+        # p = Ether()/ \
+        #     IP(tos=0x17<<2)/ \
+        #     UDP(sport=5000, dport=8086)/ \
+        #     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+        #     Ether()/ \
+        #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
+        #     UDP(sport=5000, dport=5000)/ \
+        #     INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+        #         INTMetadata = int_metadata)
+
         p = Ether()/ \
-            IP(tos=0x17<<2)/ \
-            UDP(sport=5000, dport=8086)/ \
-            TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
-            Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
+            TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
             INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
                 INTMetadata = int_metadata)
-
+        
         packets.append(bytes(p))
         for x in range(1,args.hops):
             int_metadata[2+x*8] = hop_latency + counter*1000 + x*100
@@ -144,18 +151,41 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    iface = "veth_0"
+    iface = "VirtualBox Host-Only Ethernet Adapter"
 
     if args.constant:
 
         
+        # p0 = Ether()/ \
+        #     IP(tos=0x17<<2)/ \
+        #     UDP(sport=5000, dport=8086)/ \
+        #     TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
+        #     Ether()/ \
+        #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
+        #     UDP(sport=5000, dport=5000)/ \
+        #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+        #         INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
+        #         5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
+        #         6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+        #     )
+
+        # p1 = Ether()/ \
+        #     IP(tos=0x17<<2)/ \
+        #     UDP(sport=5000, dport=8086)/ \
+        #     TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
+        #     Ether()/ \
+        #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
+        #     UDP(sport=5000, dport=5000)/ \
+        #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+        #         INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
+        #         5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
+        #         6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+        #     )
+
         p0 = Ether()/ \
-            IP(tos=0x17<<2)/ \
-            UDP(sport=5000, dport=8086)/ \
-            TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
-            Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
+            TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
             INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
                 INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
                 5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
@@ -163,12 +193,9 @@ if __name__ == "__main__":
             )
 
         p1 = Ether()/ \
-            IP(tos=0x17<<2)/ \
-            UDP(sport=5000, dport=8086)/ \
-            TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
-            Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
+            TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
             INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
                 INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
                 5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
@@ -194,8 +221,8 @@ if __name__ == "__main__":
             # if args.number>=10000:
                 while 1:
                     # for x in range(args.number):
-                        # sendp(packets[x], iface=iface, verbose = 0)
-                    sendpfast(packets, iface=iface, pps=args.number)
+                    sendp(packets, iface=iface, verbose = 0)
+                    # sendpfast(packets, iface=iface, pps=args.number)
                         # if x%args.number==0:
                             # print(f"Sent {args.number} packages in {datetime.now()-start}: {args.number}")
                         # start = datetime.now()
