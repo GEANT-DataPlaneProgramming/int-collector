@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
 
     print("Start sniffing your packages")
-
+    pak = sniff(iface = iface, count=args.number)
     while 1:
         start = datetime.now()
         pak = sniff(iface = iface, count=args.number)

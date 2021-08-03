@@ -131,6 +131,11 @@ def gen_packets(number_of_packets):
             int_metadata[4+x*8] = ingress_timestamp + counter * 1000 + x * 100
             int_metadata[5+x*8] = egress_timestamp + counter * 1000 + x *100
             int_metadata[0+x*8] = list_switch_id[x]
+
+        if counter>10000:
+            repetition = number_of_packets // 10000
+            packets = packets * repetition
+            break
         # print(int_metadata)
     return packets
         
@@ -146,7 +151,7 @@ if __name__ == "__main__":
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
         help="Number of hops in packet. Max - 6.")
     parser.add_argument("-i","--interface", type=str, required=True,
-        help="Listening network interface")
+        help="Interface through which packets will be sent")
     parser.add_argument("-n", "--number", default=1000, type=int,
         help="Number of generating packets per one second")
   
@@ -217,23 +222,16 @@ if __name__ == "__main__":
     if args.linear:
         
         counter = 0
+        print('Start generating packages')
         packets = gen_packets(args.number)
-        start = datetime.now()
+        print('Start sending packages')
         try:
-            # if args.number>=10000:
                 while 1:
+                    start = datetime.now()
                     # for x in range(args.number):
                     # sendp(packets, iface=iface, verbose = 0)
                     sendpfast(packets, iface=iface, pps=args.number)
-                        # if x%args.number==0:
-                            # print(f"Sent {args.number} packages in {datetime.now()-start}: {args.number}")
-                        # start = datetime.now()
-            # else:
-                # while 1:
-                    # sendp(packets, iface=iface, verbose = 0, inter = 1/(args.number*200))
-                    # sendpfast(packets, iface=iface, pps=args.number)
-                    # print(datetime.now()-start,': ', args.number)
-                    # start = datetime.now()
+                    print(f'Sent {args.number} packages in: {datetime.now()-start}s')
                     
 
         except KeyboardInterrupt:
