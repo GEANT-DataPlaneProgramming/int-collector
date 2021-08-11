@@ -229,8 +229,8 @@ if __name__ == "__main__":
                 while 1:
                     start = datetime.now()
                     # for x in range(args.number):
-                    # sendp(packets, iface=iface, verbose = 0)
-                    sendpfast(packets, iface=iface, pps=args.number)
+                    sendp(packets, iface=iface, verbose = 0, inter = 1/args.number)
+                    # sendpfast(packets, iface=iface, pps=args.number)
                     print(f'Sent {len(packets)} packages in: {datetime.now()-start}s')
                     
 
