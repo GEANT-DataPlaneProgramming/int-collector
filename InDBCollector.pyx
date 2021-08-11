@@ -104,7 +104,7 @@ class InDBCollector(object):
             origin_timestamp, destination_timestamp = 0, 0
         
         json_report = {
-            "measurement": "int_telemetry",
+            "measurement": "int_telemetry_new_collector",
             "tags": flow_id,
             'time': int(time.time()*1e9), # use local time because bmv2 clock is a little slower making time drift 
             "fields": {
@@ -138,7 +138,7 @@ class InDBCollector(object):
         tags = copy(flow_id)
         tags['hop_index'] = index
         json_report = {
-            "measurement": "int_telemetry",
+            "measurement": "int_telemetry_new_collector",
             "tags": tags,
             'time': int(time.time()*1e9), # use local time because bmv2 clock is a little slower making time drift 
             "fields": {}
