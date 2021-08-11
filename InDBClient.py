@@ -20,7 +20,7 @@ def parse_params():
     parser.add_argument("-H", "--host", default="localhost",
         help="InfluxDB server address")
 
-    parser.add_argument("-D", "--database", default="INTdatabase",
+    parser.add_argument("-D", "--database", default="int_telemetry_db",
         help="Database name")
 
     parser.add_argument("-p", "--period", default=10, type=int,
