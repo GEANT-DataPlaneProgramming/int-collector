@@ -234,7 +234,7 @@ class InDBCollector(object):
             if event.is_n_flow or event.is_flow:
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
                 event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
-                self.number_of_event +=1
+                #self.number_of_event +=1
 
             # if event.is_hop_latency:
             #     for i in range(0, event.num_INT_hop):
@@ -257,8 +257,8 @@ class InDBCollector(object):
             self.lock.acquire()
             self.event_data.extend(event_data)
             self.lock.release()
-            if self.number_of_event % 10000 ==0:
-                print(datetime.now() -self.start,self.number_of_event)
+            # if self.number_of_event % 10000 ==0:
+            #    print(datetime.now() -self.start,self.number_of_event)
             # print(datetime.now() -self.start,self.number_of_event)
             # Print event data for debug
             if self.debug_mode==1:

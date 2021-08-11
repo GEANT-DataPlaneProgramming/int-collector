@@ -127,15 +127,15 @@ def gen_packets(number_of_packets):
         
         packets.append(bytes(p))
         for x in range(1,args.hops):
-            int_metadata[2+x*8] = hop_latency + counter*1000 + x*100
-            int_metadata[4+x*8] = ingress_timestamp + counter * 1000 + x * 100
-            int_metadata[5+x*8] = egress_timestamp + counter * 1000 + x *100
+            int_metadata[2+x*8] = hop_latency + counter*100 + x*100
+            int_metadata[4+x*8] = ingress_timestamp + counter * 100 + x * 100
+            int_metadata[5+x*8] = egress_timestamp + counter * 100 + x *100
             int_metadata[0+x*8] = list_switch_id[x]
 
-        if counter>10000:
-            repetition = number_of_packets // 10000
-            packets = packets * repetition
-            break
+        #if counter>10000:
+         #   repetition = number_of_packets // 10000
+          #  packets = packets * repetition
+           # break
         # print(int_metadata)
     return packets
         
