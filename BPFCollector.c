@@ -61,7 +61,7 @@
 #define QUEUE_OCCUP 50
 #define QUEUE_CONGEST 50
 #define TX_UTILIZE 50
-#define TIME_GAP_W 100 //ns
+#define TIME_GAP_W 10 //ns
 
 // Threshold only for influxDB
 #ifdef USE_PROMETHEUS
