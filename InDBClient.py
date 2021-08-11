@@ -46,6 +46,8 @@ if __name__ == "__main__":
 
     args = parse_params()
 
+    # number_of_events = 0
+
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port,
         debug_mode=args.debug_mode, host=args.host,
         database=args.database, int_time=args.int_time,
@@ -77,6 +79,8 @@ if __name__ == "__main__":
 
             if args.debug_mode==2:
                 print("Len of events: ", len(data))
+                # number_of_events = number_of_events+ 1
+                # print(f'{number_of_events}')                
 
             if data:
                 collector.client.write_points(points=data[0])
