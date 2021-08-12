@@ -29,7 +29,7 @@ def parse_params():
     parser.add_argument("-D", "--database", default="int_telemetry_db",
         help="Database name")
 
-    parser.add_argument("-p", "--period", default=10, type=int,
+    parser.add_argument("-p", "--period", default=1, type=int,
         help="Time period to push data in normal condition")
 
     parser.add_argument("-P", "--event_period", default=0, type=float,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     args = parse_params()
 
     logger.setLevel(args.log_level)
-    
+
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
         host=args.host, database=args.database, 
         int_time=args.int_time, event_mode=args.event_mode, 

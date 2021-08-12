@@ -297,4 +297,41 @@ class InDBCollector(object):
         self.bpf_collector["events"].open_perf_buffer(_process_event, page_cnt=512)
 
 
+    def collect_data(self):
 
+        data = []
+
+        for (flow_id, flow_info) in self.tb_flow.iteritems():
+            path_str = ":".join(str(flow_info.sw_ids[i]) for i in reversed(range(0, flow_info.num_INT_hop)))
+
+            flow_id_str = "%s:%d->%s:%d\\,proto\\=%d" % (self.int_2_ip4_str(flow_id.src_ip), \
+                                                    flow_id.src_port, \
+                                                    self.int_2_ip4_str(flow_id.dst_ip), \
+                                                    flow_id.dst_port, \
+                                                    flow_id.ip_proto)
+
+            data.append("flow_stat\\,%s flow_latency=%d,path=\"%s\"%s" % (
+                    flow_id_str, flow_info.flow_latency, path_str,
+                    ' %d' % flow_info.flow_sink_time if self.int_time else ''))
+
+            if flow_info.is_hop_latency:
+                for i in range(0, flow_info.num_INT_hop):
+                    data.append("flow_hop_latency\\,%s\\,sw_id\\=%d value=%d%s" % (
+                            flow_id_str, flow_info.sw_ids[i], flow_info.hop_latencies[i],
+                            ' %d' % flow_info.egr_times[i] if self.int_time else ''))
+
+        for (egr_id, egr_info) in self.tb_egr.items():
+            data.append("port_tx_utilize\\,sw_id\\=%d\\,port_id\\=%d value=%d%s" % (
+                    egr_id.sw_id, egr_id.p_id, egr_info.tx_utilize,
+                    ' %d' % egr_info.egr_time if self.int_time else ''))
+
+        for (queue_id, queue_info) in self.tb_queue.items():
+            data.append("queue_occupancy\\,sw_id\\=%d\\,queue_id\\=%d value=%d%s" % (
+                    queue_id.sw_id, queue_id.q_id, queue_info.occup,
+                    ' %d' % queue_info.q_time if self.int_time else ''))
+
+            # data.append("queue_congestion\\,sw_id\\=%d\\,queue_id\\=%d value=%d%s" % (
+            #         queue_id.sw_id, queue_id.q_id, queue_info.congest,
+            #         ' %d' % queue_info.q_time if self.int_time else ''))
+
+        return data
