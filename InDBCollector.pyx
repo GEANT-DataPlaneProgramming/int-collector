@@ -42,18 +42,21 @@ cdef struct Event:
     unsigned char  is_flow
     unsigned char  is_hop_latency
     unsigned char  is_queue_occup
-    # unsigned char  is_queue_congest
+    unsigned char  is_queue_congest
     unsigned char  is_tx_utilize
     unsigned int   seq_num
     unsigned int   sw_id
 
-
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger(__name__)
+logger_raports = logging.getLogger('LogRaport')
 
 class InDBCollector(object):
     """docstring for InDBCollector"""
 
-    def __init__(self, max_int_hop=6, debug_mode=0, int_dst_port=54321, int_time=False,
-                    host="localhost", database="INTdatabase",event_mode="THRESHOLD"):
+    def __init__(self, max_int_hop=6, int_dst_port=54321, int_time=False,
+                    host="localhost", database="int_telemetry_db",event_mode="THRESHOLD", 
+                    log_level=20, log_raports_lvl = 20):
         super(InDBCollector, self).__init__()
 
         self.MAX_INT_HOP = _MAX_INT_HOP
@@ -66,9 +69,8 @@ class InDBCollector(object):
         self.last_dstts = {} # save last `dstts` per each monitored flow
         self.last_reordering = {}  # save last `reordering` per each monitored flow
         self.last_hop_ingress_timestamp = {} #save last ingress timestamp per each hop in each monitored flow
-        # self.period = period # maximum time delay of int report sending to influx
         self.last_send = time.time() # last time when reports were send to influx
-        self.number_of_event = 0
+
         self.start = datetime.now()
         self.ifaces = set()
 
@@ -92,8 +94,12 @@ class InDBCollector(object):
         self.event_data = []
 
         self.client = InfluxDBClient(host=host, database=database)
+        self.log_level = log_level
+        self.log_raports_lvl = log_raports_lvl
+        self.number_of_event = 0 
 
-        self.debug_mode = debug_mode
+        logger.setLevel(self.log_level)
+        logger_raports.setLevel(self.log_raports_lvl)
 
     def prepare_e2e_report(self, flow_id, ingr_times, seq_num, flow_key, last_hop_index):        
         
@@ -129,8 +135,7 @@ class InDBCollector(object):
         # # save dstts for purpose of sink_jitter calculation
         self.last_reordering[flow_key] = seq_num
 
-        # json_object = json.dumps(json_report, indent = 4)  
-        # print("E2E - report\n",json_object)
+        logger_raports.debug(f"E2E report\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
     def prepare_hop_report(self, flow_id, index, flow_key, hop_latencies, ingr_times):
@@ -161,8 +166,7 @@ class InDBCollector(object):
         if ingr_times[index]:
             self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
         
-        # json_object = json.dumps(json_report, indent = 4)  
-        # print("HOP - report",index,"\n",json_object)
+        logger_raports.debug(f"HOP - report {index}\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
     def prepare_reports(self, flow_id, hop_latencies, seq_num, ingr_times, egr_times):
@@ -182,8 +186,9 @@ class InDBCollector(object):
 
         self.last_hop_delay = last_ingr_time
         for index in range(last_hop_index+1):
-            # print(index,'\n',hop)
             reports.append(self.prepare_hop_report(flow_id, index, flow_key, hop_latencies, ingr_times))
+        
+        logger_raports.debug(f'\n{"*"*50}')
 
         json_body = []
         return reports
@@ -221,6 +226,7 @@ class InDBCollector(object):
             cdef Event *event = <Event*> _event
             # push data
 
+            event_flag: bool = False
             event_data = []
             
             flow_id = {
@@ -234,61 +240,59 @@ class InDBCollector(object):
             if event.is_n_flow or event.is_flow:
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
                 event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
-                #self.number_of_event +=1
+                event_flag = True
 
-            # if event.is_hop_latency:
-            #     for i in range(0, event.num_INT_hop):
-            #         if ((event.is_hop_latency >> i) & 0x01):
-            #             event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
-            #             self.number_of_event +=1
+            if event.is_hop_latency:
+                for i in range(0, event.num_INT_hop):
+                    if ((event.is_hop_latency >> i) & 0x01):
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_flag = True
 
-            # if event.is_tx_utilize:
-            #     for i in range(0, event.num_INT_hop):
-            #         if ((event.is_tx_utilize >> i) & 0x01):
-            #             event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
-            #             self.number_of_event +=1
+            if event.is_tx_utilize:
+                for i in range(0, event.num_INT_hop):
+                    if ((event.is_tx_utilize >> i) & 0x01):
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_flag = True
 
-            # if event.is_queue_occup:
-            #     for i in range(0, event.num_INT_hop):
-            #         if ((event.is_queue_occup >> i) & 0x01):
-            #             event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
-            #             self.number_of_event +=1
+            if event.is_queue_occup:
+                for i in range(0, event.num_INT_hop):
+                    if ((event.is_queue_occup >> i) & 0x01):
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_flag = True
 
             self.lock.acquire()
             self.event_data.extend(event_data)
             self.lock.release()
-            # if self.number_of_event % 10000 ==0:
-            #    print(datetime.now() -self.start,self.number_of_event)
-            # print(datetime.now() -self.start,self.number_of_event)
+
             # Print event data for debug
-            if self.debug_mode==1:
-                print("*" * 20)
-                print("src_ip", str(IPv4Address(event.src_ip)))
-                print("dst_ip", str(IPv4Address(event.dst_ip)))
-                print("src_port", event.src_port)
-                print("dst_port", event.dst_port)
-                print("ip_proto", event.ip_proto)
-                print("num_INT_hop", event.num_INT_hop)
-                print("sw_ids", event.sw_ids)
-                print("in_port_ids", event.in_port_ids)
-                print("e_port_ids", event.e_port_ids)
-                print("hop_latencies", event.hop_latencies)
-                print("queue_ids", event.queue_ids)
-                print("queue_occups", event.queue_occups)
-                print("ingr_times", event.ingr_times)
-                print("egr_times", event.egr_times)
-                print("lv2_in_e_port_ids", event.lv2_in_e_port_ids)
-                print("tx_utilizes", event.tx_utilizes)
-                print("flow_latency", event.flow_latency)
-                print("flow_sink_time", event.flow_sink_time)
-                print("is_n_flow", event.is_n_flow)
-                print("is_flow", event.is_flow)
-                print("is_hop_latency", event.is_hop_latency)
-                print("is_queue_occup", event.is_queue_occup)
-                # print("is_queue_congest", event.is_queue_congest)
-                print("is_tx_utilize", event.is_tx_utilize)
-                print("seq_num", event.seq_num)
-                print("sw_id", event.sw_id)
+            self.number_of_event += 1
+            logger.debug((f"\n{'*'*15}{self.number_of_event} Event {'*'*15}\n"
+                f"src_ip: {str(IPv4Address(event.src_ip))}\n"
+                f"dst_ip: {str(IPv4Address(event.dst_ip))}\n"
+                f"src_port: {event.src_port}\n"
+                f"dst_port: {event.dst_port}\n"
+                f"ip_proto: {event.ip_proto}\n"
+                f"num_INT_hop: {event.num_INT_hop}\n"
+                f"sw_ids: {event.sw_ids}\n"
+                f"in_port_ids: {event.in_port_ids}\n"
+                f"e_port_ids: {event.e_port_ids}\n"
+                f"hop_latencies: {event.hop_latencies}\n"
+                f"queue_ids: {event.queue_ids}\n"
+                f"queue_occups: {event.queue_occups}\n"
+                f"ingr_times: {event.ingr_times}\n"
+                f"egr_times: {event.egr_times}\n"
+                f"lv2_in_e_port_ids: {event.lv2_in_e_port_ids}\n"
+                f"tx_utilizes: {event.tx_utilizes}\n"
+                f"flow_latency: {event.flow_latency}\n"
+                f"flow_sink_time: {event.flow_sink_time}\n"
+                f"is_n_flow: {event.is_n_flow}\n"
+                f"is_flow: {event.is_flow}\n"
+                f"is_hop_latency: {event.is_hop_latency}\n"
+                f"is_queue_occup: {event.is_queue_occup}\n"
+                f"is_queue_congest: {event.is_queue_congest}\n"
+                f"is_tx_utilize: {event.is_tx_utilize}\n"
+                f"seq_num: {event.seq_num}\n"
+                f"sw_id: {event.sw_id}\n"))
 
         self.bpf_collector["events"].open_perf_buffer(_process_event, page_cnt=512)
 
