@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 def parse_params():
     parser = argparse.ArgumentParser(description='InfluxBD INTCollector client.')#, formatter_class=RawTextHelpFormatter)
     
-    parser.add_argument("ifaces", nargs='+',
-    help="List of ifaces to receive INT reports")
+    parser.add_argument("ifaces", nargs="*", default = "veth_0",
+        help="List of ifaces to receive INT reports")
 
     parser.add_argument("-i", "--int_port", default=8086, type=int,
         help="Destination port of INT Telemetry reports")
@@ -69,8 +69,7 @@ if __name__ == "__main__":
         )
 
 
-    for iface in args.ifaces:
-        collector.attach_iface(iface)
+    collector.attach_iface(args.ifaces)
 
     # clear all old dbs. For easy testing
     clear_db: str = 'n'
