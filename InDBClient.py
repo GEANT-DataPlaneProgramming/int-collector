@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # clear all old dbs. For easy testing
     clear_db: str = 'n'
-    clear_db = input(f'Database name: {args.database}.\nShould I clear the database? [y/n]: ')
+    clear_db = input(f'Database name: {args.database}.\nShould the database be cleared? [y/n]: ')
     if clear_db in ['yes', 'y', 'Y', 'YES']:
         for db in collector.client.get_list_database():
             collector.client.drop_database(db["name"])
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     databases_list = [x['name'] for x in collector.client.get_list_database()]
     if not(args.database in databases_list):
         collector.client.create_database(args.database)
-        logger.info(f'Databases created.')
+        logger.info(f'Database has been created.')
 
     push_stop_flag = threading.Event()
 

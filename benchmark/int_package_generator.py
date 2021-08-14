@@ -6,7 +6,6 @@ import time
 import argparse
 import logging
 from datetime import datetime
-from dataclasses import dataclass
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
@@ -93,25 +92,47 @@ class INT_v10(Packet):
         FieldListField("INTMetadata", [], XIntField("", None), count_from=lambda p:p.length - 2)
         ]    
 
-@dataclass 
 class INTMetadata():
     def __init__(self, hops):
+        self.hop = hops
         self.switch_id = 1
-        self.ing_egr_port_id = 2 << 16 | 3  #ingress_port << 16 | egr_port
+        self.ingress_port = 2
+        self.egress_port = 3
         self.hop_latency = 20
-        self.queue_id_occups = 5 <<16 | 600 #queue_id << 16 | queue_occups
+        self.queue_id = 5 
+        self.queue_occups = 600
         self.ingress_timestamp = 700
         self.egress_timestamp = 15242
         self.lv2_in_e_port = 5<<15|1000
         self.tx_utilizes = 1
 
+        self.__queue_id_occups = self.queue_id <<16 | self.queue_occups #queue_id << 16 | queue_occups
+        self.__ing_egr_port_id = self.ingress_port << 16 | self.egress_port  #ingress_port << 16 | egr_port
+
         """
         INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
                         ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
         """
-        self.int_metadata = [self.switch_id, self.ing_egr_port_id, self.hop_latency, self.queue_id_occups,
+        self.int_metadata = [self.switch_id, self.__ing_egr_port_id, self.hop_latency, self.__queue_id_occups,
                         self.ingress_timestamp, self.egress_timestamp, self.lv2_in_e_port, self.tx_utilizes]
         self.int_metadata = self.int_metadata * hops
+
+    # def edit_metadata(self, switch_id, ingress_port, egress_port, hop_latency, queue_id, queue_occups,
+    #                     ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes):
+    
+    def print_metadata(self, name):
+        print(f'\n{"*"*15}{name} INT METADATA{"*"*15}')
+        for hop in range(self.hop):
+            shift = hop*8+8
+            print((f'HOP {hop}: {self.int_metadata[hop*8:shift]}'))
+
+    def print_metadata_build(self):
+
+        print(f'\n{"*"*15}METADATA BUILD:{"*"*15}\n'
+            f"[0.switch_id, \n1.ingress_port_id, \n2.egress_port_id,\n"
+            f"3.hop_latency, \n4.queue_id, \n5.queue_occups, \n6.ingress_timestamp,\n"
+            f"7.egress_timestamp, \n8.lv2_in_e_port, \n9.tx_utilizes]")
+        
 
 def gen_packets():
 
@@ -120,7 +141,10 @@ def gen_packets():
     packets = []
     int_metadata = INTMetadata(args.hops)
 
-    logger.debug(f'First INTMetada:\n {int_metadata.int_metadata}')
+
+    if args.log_level == 10: 
+        int_metadata.print_metadata_build()
+        int_metadata.print_metadata("FIRST")
 
     if args.linear:
         for counter in range(0,args.number):
@@ -148,30 +172,18 @@ def gen_packets():
                 int_metadata.int_metadata[5+x*8] = int_metadata.egress_timestamp + counter * 100 + x *100
                 int_metadata.int_metadata[0+x*8] = list_switch_id[x]
 
-        else:
-            p0 = Ether()/ \
-                IP(tos=0x17<<2)/ \
-                UDP(sport=5000, dport=8086)/ \
-                TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
-                Ether()/ \
-                IP(src="10.0.0.1", dst="10.0.0.2")/ \
-                UDP(sport=5000, dport=5000)/ \
-                INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                    INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
-                    5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-                    6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
-                )
-            p1 = Ether()/ \
+        if args.log_level == 10: int_metadata.print_metadata("LAST")
+
+    else:
+        p0 = Ether()/ \
             IP(tos=0x17<<2)/ \
             UDP(sport=5000, dport=8086)/ \
-            TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
+            TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
             Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
             INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
-                5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-                6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+                INTMetadata= int_metadata.int_metadata
             )
 
         # p0 = Ether()/ \
@@ -179,25 +191,34 @@ def gen_packets():
         #     UDP(sport=5000, dport=5000)/ \
         #     TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
         #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-        #         INTMetadata= [4, 2<<16| 3, 400, 5<<16| 600, 700, 1524234560, 5<<16| 1000, 1,
-        #         5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-        #         6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+        #         INTMetadata= int_metadata.int_metadata
         #     )
+
+        p1 = Ether()/ \
+            IP(tos=0x17<<2)/ \
+            UDP(sport=5000, dport=8086)/ \
+            TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
+            Ether()/ \
+            IP(src="10.0.0.1", dst="10.0.0.2")/ \
+            UDP(sport=5000, dport=5000)/ \
+            INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                INTMetadata= int_metadata.int_metadata
+            )
 
         # p1 = Ether()/ \
         #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
         #     UDP(sport=5000, dport=5000)/ \
         #     TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
         #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-        #         INTMetadata= [4, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1000,
-        #         5, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1,
-        #         6, 2<<16| 3, 4, 5<<16| 6, 7, 1524234560, 5<<16| 10, 1]
+        #         INTMetadata= int_metadata.int_metadata
         #     )
-            packets = [p0,p1]
-        
-        logger.debug(f'Last INTMetadata:\n{int_metadata.int_metadata}')
-        logger.info(f'Generated {len(packets)} packages.')
-        return packets
+
+        packets.append(bytes(p0))
+        packets.append(bytes(p1))
+        if args.log_level == 10: int_metadata.print_metadata("LAST")
+
+    logger.info(f'{len(packets)} packages were generated.\n')
+    return packets
         
     
 
@@ -230,13 +251,25 @@ if __name__ == "__main__":
     iface = args.interface
 
     if args.constant:        
+        logger.info(f'Start of generating of packages')
+        packets = gen_packets()
+        logger.info(f'Start of sending packages through the {iface} interface')
+        spackets: int = 0
 
         try:
+            start_time = datetime.now()
             while 1:
-                sendp(p0, iface=iface)
+                sendp(packets[0], iface=iface, verbose = args.verbose)
                 time.sleep(1)
-                sendp(p1, iface=iface)
+                sendp(packets[0], iface=iface, verbose = args.verbose)
                 time.sleep(1)
+                
+                spackets += 2
+                if spackets == args.number:
+                    end_time = datetime.now()
+                    logger.info(f'{spackets} packets were sent within {end_time-start_time}s.')
+                    start_time = end_time
+                    spackets = 0
 
         except KeyboardInterrupt:
             pass
@@ -244,16 +277,16 @@ if __name__ == "__main__":
     if args.linear:
         
         counter = 0
-        logger.info(f'Start generating packages')
+        logger.info(f'Start of generating of packages')
         packets = gen_packets()
-        logger.info(f'Start sending packages')
+        logger.info(f'Start of sending packages through the {iface} interface')
         try:
                 while 1:
                     start = datetime.now()
                     # for x in range(args.number):
                     sendp(packets, iface=iface, verbose = args.verbose)#, inter = 1/args.number)
                     # sendpfast(packets, iface=iface, pps=args.number)
-                    logger.debug(f'Sent {len(packets)} packages in: {datetime.now()-start}s')
+                    logger.info(f'{len(packets)} packets were sent within {datetime.now()-start}s')
                     
 
         except KeyboardInterrupt:
