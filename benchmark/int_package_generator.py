@@ -181,7 +181,7 @@ def gen_packets():
         int_metadata.print_metadata("FIRST")
 
     if args.linear:
-        for counter in range(0,args.number):
+        for counter in range(0,1000):
             p = Ether()/ \
                 IP(tos=0x17<<2)/ \
                 UDP(sport=5000, dport=8086)/ \
@@ -205,8 +205,16 @@ def gen_packets():
             int_metadata.edit_timestamps()
             int_metadata.edit_tx_utilizes()
 
-
         if args.log_level == 10: int_metadata.print_metadata("LAST")
+
+        if args.number > 1000:
+            while 1:
+                for i in range(len(packets)):
+                    if len(packets) < args.number:
+                        packets.append(packets[i])
+                    else:
+                        logger.info(f'{len(packets)} packages were generated.\n')
+                        return packets
 
     else:
         p0 = Ether()/ \
