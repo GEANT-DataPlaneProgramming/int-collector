@@ -93,36 +93,68 @@ class INT_v10(Packet):
         ]    
 
 class INTMetadata():
-    def __init__(self, hops):
-        self.hop = hops
-        self.switch_id = 1
-        self.ingress_port = 2
-        self.egress_port = 3
-        self.hop_latency = 20
-        self.queue_id = 5 
-        self.queue_occups = 600
-        self.ingress_timestamp = 700
-        self.egress_timestamp = 15242
-        self.lv2_in_e_port = 5<<15|1000
-        self.tx_utilizes = 1
+    def __init__(self, hops, switch_id = 1, ingress_port = 2, egress_port = 3, hop_latency = 20, queue_id = 5, 
+                queue_occups = 600, ingress_timestamp = 700, egress_timestamp = 15242, lv2_in_e_port = 5 << 15 | 1000,
+                tx_utilizes = 1):
 
-        self.__queue_id_occups = self.queue_id <<16 | self.queue_occups #queue_id << 16 | queue_occups
-        self.__ing_egr_port_id = self.ingress_port << 16 | self.egress_port  #ingress_port << 16 | egr_port
+        self.__hops = hops
+        self.switch_id = switch_id
+        self.ingress_port = ingress_port
+        self.egress_port = egress_port
+        self.hop_latency = hop_latency
+        self.queue_id = queue_id
+        self.queue_occups = queue_occups
+        self.ingress_timestamp = ingress_timestamp
+        self.egress_timestamp = egress_timestamp
+        self.lv2_in_e_port = lv2_in_e_port
+        self.tx_utilizes = tx_utilizes
+
+        self.__queue_id_occups: int = 0
+        self.__ing_egr_port_id: int = 0
+
+        self.int_metadata = []
+    
+    def create_metadata(self):
 
         """
         INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
                         ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
         """
-        self.int_metadata = [self.switch_id, self.__ing_egr_port_id, self.hop_latency, self.__queue_id_occups,
-                        self.ingress_timestamp, self.egress_timestamp, self.lv2_in_e_port, self.tx_utilizes]
-        self.int_metadata = self.int_metadata * hops
+        self.__queue_id_occups = self.queue_id <<16 | self.queue_occups #queue_id << 16 | queue_occups
+        self.__ing_egr_port_id = self.ingress_port << 16 | self.egress_port  #ingress_port << 16 | egr_port
 
-    # def edit_metadata(self, switch_id, ingress_port, egress_port, hop_latency, queue_id, queue_occups,
-    #                     ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes):
-    
+        self.int_metadata = [self.switch_id, self.__ing_egr_port_id, self.hop_latency, self.__queue_id_occups,
+                        self.ingress_timestamp, self.egress_timestamp, self.lv2_in_e_port, self.tx_utilizes] * self.__hops
+        
+        for hop in range(self.__hops):
+            self.int_metadata[0+hop*8] += hop
+
+    def edit_hop_latency(self, new_hop_latency = 60):
+
+        for hop in range(1,self.__hops):
+            self.int_metadata[2+hop*8] += new_hop_latency * (hop+1)
+ 
+    def edit_queue_occups(self, new_queue_occups = 6):
+
+        for hop in range(self.__hops):
+            queue_id_occups = self.queue_id <<16 | new_queue_occups #queue_id << 16 | queue_occups
+            self.int_metadata[3+hop*8] = queue_id_occups
+
+    def edit_timestamps(self, new_ing_time = 60, new_egr_time = 60):
+        
+        for hop in range(self.__hops):
+            self.int_metadata[4+hop*8] += new_ing_time * hop
+            self.int_metadata[5+hop*8] += new_egr_time * hop
+
+    def edit_tx_utilizes(self, hop = 0, new_tx = 0):
+        try:
+            self.int_metadata[7+hop*8] = new_tx
+        except:
+            pass
+
     def print_metadata(self, name):
         print(f'\n{"*"*15}{name} INT METADATA{"*"*15}')
-        for hop in range(self.hop):
+        for hop in range(self.__hops):
             shift = hop*8+8
             print((f'HOP {hop}: {self.int_metadata[hop*8:shift]}'))
 
@@ -132,6 +164,7 @@ class INTMetadata():
             f"[0.switch_id, \n1.ingress_port_id, \n2.egress_port_id,\n"
             f"3.hop_latency, \n4.queue_id, \n5.queue_occups, \n6.ingress_timestamp,\n"
             f"7.egress_timestamp, \n8.lv2_in_e_port, \n9.tx_utilizes]")
+
         
 
 def gen_packets():
@@ -140,6 +173,7 @@ def gen_packets():
     int_length = args.hops * 8 + 3
     packets = []
     int_metadata = INTMetadata(args.hops)
+    int_metadata.create_metadata()
 
 
     if args.log_level == 10: 
@@ -166,11 +200,12 @@ def gen_packets():
             #         INTMetadata = int_metadata)
             
             packets.append(bytes(p))
-            for x in range(1,args.hops):
-                int_metadata.int_metadata[2+x*8] = int_metadata.hop_latency + counter*100 + x*100
-                int_metadata.int_metadata[4+x*8] = int_metadata.ingress_timestamp + counter * 100 + x * 100
-                int_metadata.int_metadata[5+x*8] = int_metadata.egress_timestamp + counter * 100 + x *100
-                int_metadata.int_metadata[0+x*8] = list_switch_id[x]
+            int_metadata.edit_hop_latency()
+            int_metadata.edit_queue_occups()
+            int_metadata.edit_timestamps()
+            int_metadata.edit_tx_utilizes()
+
+
 
         if args.log_level == 10: int_metadata.print_metadata("LAST")
 
@@ -183,13 +218,7 @@ def gen_packets():
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
             INT_v10(length=int_length,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                INTMetadata= int_metadata.int_metadata
-            )
-        for x in range(1,args.hops):
-            int_metadata.int_metadata[2+x*8] = int_metadata.hop_latency + 5100*x
-            int_metadata.int_metadata[4+x*8] = int_metadata.ingress_timestamp + 51 *x
-            int_metadata.int_metadata[5+x*8] = int_metadata.egress_timestamp + 51 *x
-            int_metadata.int_metadata[0+x*8] = list_switch_id[x]
+                INTMetadata= int_metadata.int_metadata)
 
         # p0 = Ether()/ \
         #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
@@ -198,6 +227,10 @@ def gen_packets():
         #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
         #         INTMetadata= int_metadata.int_metadata
         #     )
+        int_metadata.edit_hop_latency(400)
+        int_metadata.edit_queue_occups()
+        int_metadata.edit_timestamps()
+        int_metadata.edit_tx_utilizes(3)
 
         p1 = Ether()/ \
             IP(tos=0x17<<2)/ \
@@ -207,8 +240,7 @@ def gen_packets():
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
             INT_v10(length=int_length,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                INTMetadata= int_metadata.int_metadata
-            )
+                INTMetadata= int_metadata.int_metadata)
 
         # p1 = Ether()/ \
         #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
