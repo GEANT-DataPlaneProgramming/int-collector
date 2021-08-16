@@ -237,37 +237,38 @@ class InDBCollector(object):
                 'protocol': event.ip_proto,       
             }
 
-            if event.is_n_flow or event.is_flow:
+            if (event.is_n_flow or event.is_flow) and event_flag == False:
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
                 event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                 event_flag = True
 
-            if event.is_hop_latency:
+            if event.is_hop_latency and event_flag == False:
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_hop_latency >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_tx_utilize:
+            if event.is_tx_utilize and event_flag == False:
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_tx_utilize >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_queue_occup:
+            if event.is_queue_occup and event_flag == False:
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_queue_occup >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
+            event_flag = False
             self.lock.acquire()
             self.event_data.extend(event_data)
             self.lock.release()
 
             # Print event data for debug
             self.number_of_event += 1
-            logger.debug((f"\n{'*'*15}{self.number_of_event} Event {'*'*15}\n"
-                f"src_ip: {str(IPv4Address(event.src_ip))}\n"
+            logger.info((f"\n{'*'*15}{self.number_of_event} Event {'*'*15}\n"))
+            logger.debug((f"src_ip: {str(IPv4Address(event.src_ip))}\n"
                 f"dst_ip: {str(IPv4Address(event.dst_ip))}\n"
                 f"src_port: {event.src_port}\n"
                 f"dst_port: {event.dst_port}\n"

@@ -206,7 +206,6 @@ def gen_packets():
             int_metadata.edit_tx_utilizes()
 
 
-
         if args.log_level == 10: int_metadata.print_metadata("LAST")
 
     else:
@@ -225,9 +224,9 @@ def gen_packets():
         #     UDP(sport=5000, dport=5000)/ \
         #     TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
         #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-        #         INTMetadata= int_metadata.int_metadata
-        #     )
-        int_metadata.edit_hop_latency(400)
+        #         INTMetadata= int_metadata.int_metadata)
+
+        int_metadata.edit_hop_latency(70)
         int_metadata.edit_queue_occups()
         int_metadata.edit_timestamps()
         int_metadata.edit_tx_utilizes(3)
@@ -247,8 +246,7 @@ def gen_packets():
         #     UDP(sport=5000, dport=5000)/ \
         #     TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
         #     INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-        #         INTMetadata= int_metadata.int_metadata
-        #     )
+        #         INTMetadata= int_metadata.int_metadata)
 
         packets.append(bytes(p0))
         packets.append(bytes(p1))
@@ -299,7 +297,7 @@ if __name__ == "__main__":
             while 1:
                 sendp(packets[0], iface=iface, verbose = args.verbose)
                 time.sleep(1)
-                sendp(packets[0], iface=iface, verbose = args.verbose)
+                sendp(packets[1], iface=iface, verbose = args.verbose)
                 time.sleep(1)
                 
                 spackets += 2
