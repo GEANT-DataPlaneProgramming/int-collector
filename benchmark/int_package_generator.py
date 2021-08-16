@@ -182,9 +182,14 @@ def gen_packets():
             Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
-            INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+            INT_v10(length=int_length,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
                 INTMetadata= int_metadata.int_metadata
             )
+        for x in range(1,args.hops):
+            int_metadata.int_metadata[2+x*8] = int_metadata.hop_latency + 5100*x
+            int_metadata.int_metadata[4+x*8] = int_metadata.ingress_timestamp + 51 *x
+            int_metadata.int_metadata[5+x*8] = int_metadata.egress_timestamp + 51 *x
+            int_metadata.int_metadata[0+x*8] = list_switch_id[x]
 
         # p0 = Ether()/ \
         #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
@@ -201,7 +206,7 @@ def gen_packets():
             Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
             UDP(sport=5000, dport=5000)/ \
-            INT_v10(length=27,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+            INT_v10(length=int_length,hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
                 INTMetadata= int_metadata.int_metadata
             )
 
@@ -230,20 +235,21 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--linear", action = 'store_true',
         help="Generates packets with linearly growing values")
     parser.add_argument("-hop", "--hops", default=3, type=int, choices=range(1,7),
-        help="Number of hops in packet. Max - 6.")
+        help="Number of hops in packet. Max - 6. Default: 3")
     parser.add_argument("-i","--interface", type=str, default='veth_1',
-        help="Interface through which packets will be sent")
+        help="Interface through which packets will be sent, Default: veth_1")
     parser.add_argument("-n", "--number", default=1000, type=int,
-        help="Number of generating packets per one second")
+        help="Number of generating packets per one second. Default: 1000")
     parser.add_argument("-v", "--verbose", default = 0, type=int, choices=range(0,2),
-        help='Scapy verbose, 0 - disable, 1 - enable')
+        help='Scapy verbose, 0 - disable, 1 - enable. Default: 0')
     parser.add_argument("-log", "--log_level", default= 20, type=int,
         help="CRITICAL = 50\
             ERROR = 40;\
             WARNING = 30;\
             INFO = 20;\
             DEBUG = 10;\
-            NOTSET = 0;")
+            NOTSET = 0;\
+            Default: 20")
             
     args = parser.parse_args()
 
@@ -283,10 +289,12 @@ if __name__ == "__main__":
         try:
                 while 1:
                     start = datetime.now()
-                    # for x in range(args.number):
-                    sendp(packets, iface=iface, verbose = args.verbose)#, inter = 1/args.number)
+                    sendp(packets, iface=iface, verbose = args.verbose, inter = 1/args.number)
                     # sendpfast(packets, iface=iface, pps=args.number)
                     logger.info(f'{len(packets)} packets were sent within {datetime.now()-start}s')
+                    counter += len(packets)
+                    logger.info(f'{counter} packets were sent.\n')
+
                     
 
         except KeyboardInterrupt:

@@ -18,22 +18,22 @@ def parse_params():
     parser = argparse.ArgumentParser(description='InfluxBD INTCollector client.')#, formatter_class=RawTextHelpFormatter)
     
     parser.add_argument("ifaces", nargs="*", default = "veth_0",
-        help="List of ifaces to receive INT reports")
+        help="List of ifaces to receive INT reports, Default: veth_0")
 
     parser.add_argument("-i", "--int_port", default=8086, type=int,
-        help="Destination port of INT Telemetry reports")
+        help="Destination port of INT Telemetry reports. Default: 8086")
 
     parser.add_argument("-H", "--host", default="localhost",
-        help="InfluxDB server address")
+        help="InfluxDB server address. Default: localhost")
 
     parser.add_argument("-D", "--database", default="int_telemetry_db",
-        help="Database name")
+        help="Database name. Default: int_telemetry_db")
 
     parser.add_argument("-p", "--period", default=1, type=int,
-        help="Time period to push data in normal condition")
+        help="Time period to push data in normal condition. Default: 1")
 
     parser.add_argument("-P", "--event_period", default=0, type=float,
-        help="Time period to push event data")
+        help="Time period to push event data. Default: 0")
 
     parser.add_argument("-t", "--int_time", action='store_true',
         help="Use INT timestamp instead of local time")
@@ -48,10 +48,11 @@ def parse_params():
             WARNING = 30;\
             INFO = 20;\
             DEBUG = 10;\
-            NOTSET = 0;")
+            NOTSET = 0;\
+            Default: 20")
     
     parser.add_argument("-l_rap", "--log_raports_lvl", default=20, type=int,
-        help='DEBUG = 10 - enables logging of raports')
+        help='DEBUG = 10 - enables logging of raports. Default: 20')
 
     return parser.parse_args()
 
