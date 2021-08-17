@@ -181,33 +181,34 @@ def gen_packets():
         int_metadata.print_metadata("FIRST")
 
     if args.linear:
-        for counter in range(0,1000):
-            p = Ether()/ \
-                IP(tos=0x17<<2)/ \
-                UDP(sport=5000, dport=8086)/ \
-                TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
-                Ether()/ \
-                IP(src="10.0.0.1", dst="10.0.0.2")/ \
-                UDP(sport=5000, dport=5000)/ \
-                INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-                    INTMetadata = int_metadata.int_metadata)
-
-            # p = Ether()/ \
-            #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
-            #     UDP(sport=5000, dport=5000)/ \
-            #     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
-            #     INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
-            #         INTMetadata = int_metadata)
-            
-            packets.append(bytes(p))
-            int_metadata.edit_hop_latency()
-            int_metadata.edit_queue_occups()
-            int_metadata.edit_timestamps()
-            int_metadata.edit_tx_utilizes()
-
-        if args.log_level == 10: int_metadata.print_metadata("LAST")
-
         if args.number > 1000:
+            for counter in range(0,1000):
+                p = Ether()/ \
+                    IP(tos=0x17<<2)/ \
+                    UDP(sport=5000, dport=8086)/ \
+                    TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+                    Ether()/ \
+                    IP(src="10.0.0.1", dst="10.0.0.2")/ \
+                    UDP(sport=5000, dport=5000)/ \
+                    INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                        INTMetadata = int_metadata.int_metadata)
+
+                # p = Ether()/ \
+                #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
+                #     UDP(sport=5000, dport=5000)/ \
+                #     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+                #     INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                #         INTMetadata = int_metadata)
+                
+                packets.append(bytes(p))
+                int_metadata.edit_hop_latency()
+                int_metadata.edit_queue_occups()
+                int_metadata.edit_timestamps()
+                int_metadata.edit_tx_utilizes()
+
+            if args.log_level == 10: int_metadata.print_metadata("LAST")
+
+            
             while 1:
                 for i in range(len(packets)):
                     if len(packets) < args.number:
@@ -215,6 +216,35 @@ def gen_packets():
                     else:
                         logger.info(f'{len(packets)} packages were generated.\n')
                         return packets
+
+        else:
+            for counter in range(0,args.number):
+                p = Ether()/ \
+                    IP(tos=0x17<<2)/ \
+                    UDP(sport=5000, dport=8086)/ \
+                    TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+                    Ether()/ \
+                    IP(src="10.0.0.1", dst="10.0.0.2")/ \
+                    UDP(sport=5000, dport=5000)/ \
+                    INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                        INTMetadata = int_metadata.int_metadata)
+
+                # p = Ether()/ \
+                #     IP(src="10.0.0.1", dst="10.0.0.2")/ \
+                #     UDP(sport=5000, dport=5000)/ \
+                #     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
+                #     INT_v10(length=int_length, hopMLen=8, remainHopCnt=3, ins=(1<<7|1<<6|1<<5|1<<4|1<<3|1<<2|1<<1|1)<<8,
+                #         INTMetadata = int_metadata)
+                
+                packets.append(bytes(p))
+                int_metadata.edit_hop_latency()
+                int_metadata.edit_queue_occups()
+                int_metadata.edit_timestamps()
+                int_metadata.edit_tx_utilizes()
+
+            if args.log_level == 10: int_metadata.print_metadata("LAST")   
+            logger.info(f'{len(packets)} packages were generated.\n')
+            return packets 
 
     else:
         p0 = Ether()/ \
