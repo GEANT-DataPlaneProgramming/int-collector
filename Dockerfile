@@ -18,14 +18,14 @@ WORKDIR src/python
 RUN make && make install
 
 #Install requirements
-COPY . /INT-collector
-WORKDIR /INT-collector
+COPY ./collector /INTcollector
+WORKDIR /INTcollector
 RUN pip3 install -r requirements.txt
 
-ENV INFLUX_ADDRESS = '172.17.0.2'
-ENV INFLUX_PORT = '8086'
+ENV INFLUX_ADDRESS 172.17.0.2
+ENV INFLUX_PORT 8086
 
-ENTRYPOINT ['./InDBClient.py eth0 -H $INFLUX_ADDRESS -i $INFLUX_PORT']
+ENTRYPOINT python3 InDBClient.py eth0 -H $INFLUX_ADDRESS -i $INFLUX_PORT
 
 
 
