@@ -60,3 +60,7 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
 
 # Pulication
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
+
+
+# Start in Docker container
+- docker run --name INTcollector --privileged -d test_collector
