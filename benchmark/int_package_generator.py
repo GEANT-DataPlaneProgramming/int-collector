@@ -351,25 +351,28 @@ if __name__ == "__main__":
     if args.linear:
         
         counter = 0
+        repetitions = 0
         logger.info(f'Start of generating of packages')
         packets = gen_packets()
         logger.info(f'Start of sending packages through the {iface} interface')
         try:
             mode = int(input("Do you want to use senp or senpfast (1-sendp, 2-sendpfast)?\nMODE: "))
             if mode == 1:
-                while 1:
+                while repetitions < 20:
                     start = datetime.now()
                     sendp(packets, iface=iface, verbose = args.verbose, inter = 1/args.number)
                     logger.info(f'{len(packets)} packets were sent within {datetime.now()-start}s')
                     counter += len(packets)
                     logger.info(f'{counter} packets were sent.\n')
+                    repetitions += 1
             elif mode == 2:
-                 while 1:
+                 while repetitions < 20:
                     start = datetime.now()
                     sendpfast(packets, iface=iface, pps=args.number)
                     logger.info(f'{len(packets)} packets were sent within {datetime.now()-start}s')
                     counter += len(packets)
                     logger.info(f'{counter} packets were sent.\n')
+                    repetitions += 1
 
                     
 
