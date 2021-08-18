@@ -54,6 +54,8 @@ def parse_params():
     parser.add_argument("-l_rap", "--log_raports_lvl", default=20, type=int,
         help='DEBUG = 10 - enables logging of raports. Default: 20')
 
+    parser.add_argument('--clear', default='n', help = ' [yes,y,YES,Y] - clear database')
+
     return parser.parse_args()
 
 
@@ -74,8 +76,8 @@ if __name__ == "__main__":
 
     # clear all old dbs. For easy testing
     clear_db: str = 'n'
-    clear_db = input(f'Database name: {args.database}.\nShould the database be cleared? [y/n]: ')
-    if clear_db in ['yes', 'y', 'Y', 'YES']:
+    # clear_db = input(f'Database name: {args.database}.\nShould the database be cleared? [y/n]: ')
+    if args.clear in ['yes', 'y', 'Y', 'YES']:
         for db in collector.client.get_list_database():
             collector.client.drop_database(db["name"])
         collector.client.create_database(args.database)

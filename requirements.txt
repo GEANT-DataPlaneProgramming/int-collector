@@ -1,4 +1,4 @@
-prometheus_client
+
 influxdb
 Cython
 pytest

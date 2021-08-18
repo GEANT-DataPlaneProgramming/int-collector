@@ -18,14 +18,26 @@ WORKDIR src/python
 RUN make && make install
 
 #Install requirements
-COPY ./collector /INTcollector
-WORKDIR /INTcollector
+WORKDIR /
+COPY ./requirements.txt /
 RUN pip3 install -r requirements.txt
 
+COPY ./collector /INTcollector
+WORKDIR /INTcollector
+
+ENV IFACE eth0
 ENV INFLUX_ADDRESS 172.17.0.2
 ENV INFLUX_PORT 8086
+ENV DATABASE_NAME int_telemetry_db
+ENV PERIOD 1
+ENV EVENT_PERIOD 1
+ENV EVENT_MODE THRESHOLD
+ENV LOG_LEVEL 30
+ENV LOG_RAPORTS_LEVEL 20
+ENV CLEAR n
 
-ENTRYPOINT python3 InDBClient.py eth0 -H $INFLUX_ADDRESS -i $INFLUX_PORT
+ENTRYPOINT python3 InDBClient.py $IFACE -H $INFLUX_ADDRESS -i $INFLUX_PORT -D $DATABASE_NAME -p $PERIOD -P $EVENT_PERIOD -e $EVENT_MODE \
+-l $LOG_LEVEL -l_rap $LOG_RAPORTS_LEVEL --clear $CLEAR
 
 
 
