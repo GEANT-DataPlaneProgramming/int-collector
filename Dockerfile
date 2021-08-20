@@ -16,6 +16,8 @@ RUN make && make install
 RUN cmake -DPYTHON_CMD=python3 ..
 WORKDIR src/python
 RUN make && make install
+#Install network tools
+RUN apt-get -y install net-tools tcpdump
 
 #Install requirements
 WORKDIR /

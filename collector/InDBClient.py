@@ -65,6 +65,11 @@ if __name__ == "__main__":
 
     logger.setLevel(args.log_level)
 
+    logger.debug(f"\n\tInterface: {args.ifaces}\n"
+                f"\tInflux address: {args.host}\n"
+                f"\tInflux port: {args.int_port}")
+
+
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
         host=args.host, database=args.database, 
         int_time=args.int_time, event_mode=args.event_mode, 
@@ -135,7 +140,7 @@ if __name__ == "__main__":
     # Start polling events
     collector.open_events()
 
-    print("eBPF progs Loaded")
+    logger.info("eBPF progs Loaded")
     sys.stdout.flush()
 
     try:
