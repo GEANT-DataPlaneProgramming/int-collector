@@ -38,6 +38,11 @@ Currently, INTCollector supports [Telemetry report v1.0](https://github.com/p4la
     sudo ip link set dev veth_0 up
     sudo ip link set dev veth_1 up
   ```
+  A script creating interfaces is available in folder INT-collector/scripts/:
+  ```
+  cd INT-collector
+  sudo sh scipts/create_vinterfaces.sh
+  ```
 * Run INTCollector at the network interface that can listen to INT Telemetry reports. If you create `veth` pair above, you can send reports to `veth_0` and listen to reports at `veth_1`:
    ``` shell
       sudo python3 PTClient.py veth_1 # For Prometheus
@@ -61,9 +66,29 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
 # Start in Docker container 
 Container aviable on DockerHub works only on host with kernel 4.15.0-154-generic.
 
+Image: https://hub.docker.com/repository/docker/jaxa/int_collector
+
 Instructions for the owner of kernel 4.15.0-154-generic:
-- docker pull jaxa/int_collector:latest
+- docker pull jaxa/int_collector
 - docker run --name INTcollector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
+
+Available environment variables:
+
+<div align=center>
+
+|        ENV        |                                                                                  Description                                                                                  |  Default value   |
+| :---------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------: |
+|       IFACE       |                                                                       Interface to receive INT reports                                                                        |       eth0       |
+|  INFLUX_ADDRESS   |                                                                            InfluxDB server address                                                                            |    172.17.0.2    |
+|    INFLUX_PORT    |                                                                   Destination port of INT Telemetry reports                                                                   |       8086       |
+|   DATABASE_NAME   |                                                                                 Database name                                                                                 | int_telemetry_db |
+|      PERIOD       |                                                                 Time period to push data in normal condition                                                                  |        1         |
+|   EVENT_PERIOD    |                                                                        Time period to push event data                                                                         |        1         |
+|    EVENT_MODE     |                                Event detection mode: INTERVAL or THRESHOLD.</br> Option -p is disabled for THRESHOLD and is hard-coded instead                                |    THRESHOLD     |
+|     LOG_LEVEL     | Displaying logs in terminal. This option makes sense when the container is launched in an interactive mode. Available options: > 20 - no log </br> 20 - info </br> 10 - debug |        30        |
+| LOG_RAPORTS_LEVEL |    Displaying raports in terminal. This option makes sense when the container is launched in an interactive mode. Available options: > 10 - no raports log</br> 10 - debug    |        20        |
+|       CLEAR       |                                                                       yes,y,YES,Y - clean the database                                                                        |        n         |
+</div>
 
 If kernel is in an older version, you can update it:
 - sudo apt-get update
