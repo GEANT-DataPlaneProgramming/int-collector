@@ -58,9 +58,26 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
    sudo python3 -m pytest -v
 ```
 
+# Start in Docker container 
+Container aviable on DockerHub works only on host with kernel 4.15.0-154-generic.
+
+Instructions for the owner of kernel 4.15.0-154-generic:
+- docker pull jaxa/int_collector:latest
+- docker run --name INTcollector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
+
+If kernel is in an older version, you can update it:
+- sudo apt-get update
+- sudo apt-get upgrade
+- sudo apt-get install linux-image-4.15.0-154-generic linux-headers-4.15.0-154-generic 
+- reboot
+
+If you don't want to update kernel or it's in a newer version, you have to build a new docker image from the source:
+- git clone https://github.com/GEANT-DataPlaneProgramming/INT-collector
+- cd INT-collector
+- docker build -t INTcollector .
 # Pulication
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
 
 
-# Start in Docker container
-- docker run --name INTcollector --privileged -d test_collector
+
+
