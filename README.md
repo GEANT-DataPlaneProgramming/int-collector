@@ -85,7 +85,7 @@ Available environment variables:
 |      PERIOD       |                                                                 Time period to push data in normal condition                                                                  |        1         |
 |   EVENT_PERIOD    |                                                                        Time period to push event data                                                                         |        1         |
 |    EVENT_MODE     |                                Event detection mode: INTERVAL or THRESHOLD.</br> Option -p is disabled for THRESHOLD and is hard-coded instead                                |    THRESHOLD     |
-|     LOG_LEVEL     | Displaying logs in terminal. This option makes sense when the container is launched in an interactive mode. Available options: > 20 - no log </br> 20 - info </br> 10 - debug |        30        |
+|     LOG_LEVEL     | Displaying logs in terminal. This option makes sense when the container is launched in an interactive mode.</br> Available options: > 20 - no log </br> 20 - info </br> 10 - debug |        30        |
 | LOG_RAPORTS_LEVEL |    Displaying raports in terminal. This option makes sense when the container is launched in an interactive mode. Available options: > 10 - no raports log</br> 10 - debug    |        20        |
 |       CLEAR       |                                                                       yes,y,YES,Y - clean the database                                                                        |        n         |
 </div>
