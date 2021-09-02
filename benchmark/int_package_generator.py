@@ -360,7 +360,7 @@ if __name__ == "__main__":
             if mode == 1:
                 while repetitions < 20:
                     start = datetime.now()
-                    sendp(packets, iface=iface, verbose = args.verbose, inter = 1/args.number)
+                    sendp(packets, iface=iface, verbose = args.verbose)#, inter = 1/args.number)
                     logger.info(f'{len(packets)} packets were sent within {datetime.now()-start}s')
                     counter += len(packets)
                     logger.info(f'{counter} packets were sent.\n')
