@@ -70,7 +70,7 @@ Image: https://hub.docker.com/repository/docker/jaxa/int_collector
 
 Instructions for the owner of kernel 4.15.0-154-generic:
 - docker pull jaxa/int_collector
-- docker run --name INTcollector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
+- docker run --name INTcollector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -e PERIOD=0 -EVENT_PERIOD=0 -d jaxa/int_collector
 
 Available environment variables:
 
