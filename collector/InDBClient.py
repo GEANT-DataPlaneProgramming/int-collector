@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 def parse_params():
     parser = argparse.ArgumentParser(description='InfluxBD INTCollector client.')#, formatter_class=RawTextHelpFormatter)
     
-    parser.add_argument("ifaces", nargs="*", default = "veth_0",
-        help="List of ifaces to receive INT reports, Default: veth_0")
+    parser.add_argument("ifaces", nargs="+",
+        help="List of ifaces to receive INT reports.")
 
     parser.add_argument("-i", "--int_port", default=8086, type=int,
         help="Destination port of INT Telemetry reports. Default: 8086")
@@ -54,6 +54,8 @@ def parse_params():
     parser.add_argument("-l_rap", "--log_raports_lvl", default=20, type=int,
         help='DEBUG = 10 - enables logging of raports. Default: 20')
 
+    parser.add_argument('--clear', default='n', help = ' [yes,y,YES,Y] - clear database')
+
     return parser.parse_args()
 
 
@@ -63,19 +65,24 @@ if __name__ == "__main__":
 
     logger.setLevel(args.log_level)
 
+    logger.debug(f"\n\tInterface: {args.ifaces}\n"
+                f"\tInflux address: {args.host}\n"
+                f"\tInflux port: {args.int_port}")
+
+
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
         host=args.host, database=args.database, 
         int_time=args.int_time, event_mode=args.event_mode, 
         log_level=args.log_level, log_raports_lvl = args.log_raports_lvl
         )
 
-
-    collector.attach_iface(args.ifaces)
+    for iface in args.ifaces:
+        collector.attach_iface(iface)
 
     # clear all old dbs. For easy testing
     clear_db: str = 'n'
-    clear_db = input(f'Database name: {args.database}.\nShould the database be cleared? [y/n]: ')
-    if clear_db in ['yes', 'y', 'Y', 'YES']:
+    # clear_db = input(f'Database name: {args.database}.\nShould the database be cleared? [y/n]: ')
+    if args.clear in ['yes', 'y', 'Y', 'YES']:
         for db in collector.client.get_list_database():
             collector.client.drop_database(db["name"])
         collector.client.create_database(args.database)
@@ -133,7 +140,7 @@ if __name__ == "__main__":
     # Start polling events
     collector.open_events()
 
-    print("eBPF progs Loaded")
+    logger.info("eBPF progs Loaded")
     sys.stdout.flush()
 
     try:

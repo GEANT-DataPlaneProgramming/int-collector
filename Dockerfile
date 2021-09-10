@@ -1,11 +1,11 @@
 FROM ubuntu:18.04
 
-# Install BCC
 RUN apt-get update
 RUN apt-get -y install python3 python3-distutils python3-pip
-RUN apt-get -y install bison build-essential cmake flex git libedit-dev \
+RUN apt-get -y install sudo linux-headers-$(uname -r) bison build-essential cmake flex git libedit-dev \
   libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
 
+# Install BCC
 RUN git clone https://github.com/iovisor/bcc.git
 RUN mkdir bcc/build
 
@@ -16,16 +16,30 @@ RUN make && make install
 RUN cmake -DPYTHON_CMD=python3 ..
 WORKDIR /src/python
 RUN make && make install
+#Install network tools
+RUN apt-get -y install net-tools tcpdump
 
-
-#Install requirements and local influxdb
-COPY . /INT-collector
-WORKDIR /INT-collector
+#Install requirements
+WORKDIR /
+COPY ./requirements.txt /
 RUN pip3 install -r requirements.txt
 
-RUN dpkg -i ./additional_packages/influxdb_1.2.4_amd64.deb
-RUN service influxdb start
+COPY ./collector /INTcollector
+WORKDIR /INTcollector
 
+ENV IFACE eth0
+ENV INFLUX_ADDRESS 172.17.0.2
+ENV INFLUX_PORT 8086
+ENV DATABASE_NAME int_telemetry_db
+ENV PERIOD 1
+ENV EVENT_PERIOD 1
+ENV EVENT_MODE THRESHOLD
+ENV LOG_LEVEL 30
+ENV LOG_RAPORTS_LEVEL 20
+ENV CLEAR n
+
+ENTRYPOINT python3 InDBClient.py $IFACE -H $INFLUX_ADDRESS -i $INFLUX_PORT -D $DATABASE_NAME -p $PERIOD -P $EVENT_PERIOD -e $EVENT_MODE \
+-l $LOG_LEVEL -l_rap $LOG_RAPORTS_LEVEL --clear $CLEAR
 
 
 
