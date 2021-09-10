@@ -9,12 +9,12 @@ RUN apt-get -y install bison build-essential cmake flex git libedit-dev \
 RUN git clone https://github.com/iovisor/bcc.git
 RUN mkdir bcc/build
 
-WORKDIR bcc/build
+WORKDIR /bcc/build
 RUN cmake ..
 RUN make && make install
 
 RUN cmake -DPYTHON_CMD=python3 ..
-WORKDIR src/python
+WORKDIR /src/python
 RUN make && make install
 
 

@@ -2,6 +2,7 @@ from __future__ import print_function
 from random import choices
 from scapy import data
 from scapy.all import *
+from scapy.utils import PcapReader
 import time
 import argparse
 import logging
