@@ -2,6 +2,13 @@
 A high-performance collector to process INT Telemetry reports, and send data to database servers such as Prometheus and InfluxDB.
 Currently, INTCollector supports [Telemetry report v1.0](https://github.com/p4lang/p4-applications/tree/master/docs), and [INT spec v1.0](https://github.com/p4lang/p4-applications/tree/master/docs) with TCP/UDP encapsulation.
 `INTCollector` use [eBPF](https://www.iovisor.org/technology/ebpf) and [XDP](https://www.iovisor.org/technology/xdp), which require recent linux kernel. For best practice, kernel version >= v4.14 should be used.
+
+This version of INT collector is modified version of the following project: [BPFCollector](https://gitlab.com/tunv_ebpf/BPFCollector/tree/master).
+
+The INT collector implementation changes and testing was done within the GEANT Data Plane Programmibilty activity:
+* https://wiki.geant.org/display/NETDEV/INT
+
+
 # Installation
 ## Collector setup
 
