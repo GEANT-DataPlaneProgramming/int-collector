@@ -86,8 +86,9 @@ Available environment variables:
 |        ENV        |                                                                                    Description                                                                                     |  Default value   |
 | :---------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------: |
 |       IFACE       |                                                                          Interface to receive INT reports                                                                          |       eth0       |
-|  INFLUX_ADDRESS   |                                                                              InfluxDB server address                                                                               |    172.17.0.2    |
-|    INFLUX_PORT    |                                                                     Destination port of INT Telemetry reports                                                                      |       8086       |
+|  INFLUX_ADDRESS   |                                                                              InfluxDB server address                                                                               |    127.0.0.1    |
+|    INFLUX_PORT       |                InfluxDB port                                                                      |       8086       |
+| INT_PROT       |                                 Destination port of INT Telemetry raports | 8090 |
 |   DATABASE_NAME   |                                                                                   Database name                                                                                    | int_telemetry_db |
 |      PERIOD       |                                                                    Time period to push data in normal condition                                                                    |        1         |
 |   EVENT_PERIOD    |                                                                           Time period to push event data                                                                           |        1         |
