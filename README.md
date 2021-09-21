@@ -88,7 +88,7 @@ Available environment variables:
 |       IFACE       |                                                                          Interface to receive INT reports                                                                          |       eth0       |
 |  INFLUX_ADDRESS   |                                                                              InfluxDB server address                                                                               |    127.0.0.1    |
 |    INFLUX_PORT       |                InfluxDB port                                                                      |       8086       |
-| INT_PROT       |                                 Destination port of INT Telemetry raports | 8090 |
+| INT_PORT       |                                 Destination port of INT Telemetry raports | 8090 |
 |   DATABASE_NAME   |                                                                                   Database name                                                                                    | int_telemetry_db |
 |      PERIOD       |                                                                    Time period to push data in normal condition                                                                    |        1         |
 |   EVENT_PERIOD    |                                                                           Time period to push event data                                                                           |        1         |
