@@ -54,9 +54,16 @@ logger_raports = logging.getLogger('LogRaport')
 class InDBCollector(object):
     """docstring for InDBCollector"""
 
-    def __init__(self, max_int_hop=6, int_dst_port=54321, int_time=False,
-                    host="localhost", database="int_telemetry_db",event_mode="THRESHOLD", 
-                    log_level=20, log_raports_lvl = 20):
+    def __init__(self, 
+                max_int_hop=6, 
+                int_dst_port=8090, 
+                int_time=False,
+                host="localhost", 
+                influx_port = 8086,
+                database="int_telemetry_db",
+                event_mode="THRESHOLD", 
+                log_level=20, 
+                log_raports_lvl = 20):
         super(InDBCollector, self).__init__()
 
         self.MAX_INT_HOP = _MAX_INT_HOP
@@ -93,7 +100,7 @@ class InDBCollector(object):
         self.lock = threading.Lock()
         self.event_data = []
 
-        self.client = InfluxDBClient(host=host, database=database)
+        self.client = InfluxDBClient(host=host, database=database, port = influx_port)
         self.log_level = log_level
         self.log_raports_lvl = log_raports_lvl
         self.number_of_event = 0 

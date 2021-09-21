@@ -186,7 +186,7 @@ def gen_packets():
             for counter in range(0,1000):
                 p = Ether()/ \
                     IP(tos=0x17<<2)/ \
-                    UDP(sport=5000, dport=8086)/ \
+                    UDP(sport=5000, dport=8090)/ \
                     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
                     Ether()/ \
                     IP(src="10.0.0.1", dst="10.0.0.2")/ \
@@ -222,7 +222,7 @@ def gen_packets():
             for counter in range(0,args.number):
                 p = Ether()/ \
                     IP(tos=0x17<<2)/ \
-                    UDP(sport=5000, dport=8086)/ \
+                    UDP(sport=5000, dport=8090)/ \
                     TelemetryReport_v10(ingressTimestamp= 1524138290)/ \
                     Ether()/ \
                     IP(src="10.0.0.1", dst="10.0.0.2")/ \
@@ -250,7 +250,7 @@ def gen_packets():
     else:
         p0 = Ether()/ \
             IP(tos=0x17<<2)/ \
-            UDP(sport=5000, dport=8086)/ \
+            UDP(sport=5000, dport=8090)/ \
             TelemetryReport_v10(swid = 1, seqNumber = 5, ingressTimestamp= 1524138290)/ \
             Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \
@@ -272,7 +272,7 @@ def gen_packets():
 
         p1 = Ether()/ \
             IP(tos=0x17<<2)/ \
-            UDP(sport=5000, dport=8086)/ \
+            UDP(sport=5000, dport=8090)/ \
             TelemetryReport_v10(swid = 1,seqNumber = 200,ingressTimestamp= 1524138290)/ \
             Ether()/ \
             IP(src="10.0.0.1", dst="10.0.0.2")/ \

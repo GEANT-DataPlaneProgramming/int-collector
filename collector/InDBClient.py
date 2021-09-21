@@ -20,11 +20,14 @@ def parse_params():
     parser.add_argument("ifaces", nargs="+",
         help="List of ifaces to receive INT reports.")
 
-    parser.add_argument("-i", "--int_port", default=8086, type=int,
-        help="Destination port of INT Telemetry reports. Default: 8086")
+    parser.add_argument("-i", "--int_port", default=8090, type=int,
+        help="Destination port of INT Telemetry reports. Default: 8090")
 
     parser.add_argument("-H", "--host", default="localhost",
         help="InfluxDB server address. Default: localhost")
+    
+    parser.add_argument("-P", "--port", default=8086,
+     help="InfluxDB server port. Default: 8086")
 
     parser.add_argument("-D", "--database", default="int_telemetry_db",
         help="Database name. Default: int_telemetry_db")
@@ -67,13 +70,14 @@ if __name__ == "__main__":
 
     logger.debug(f"\n\tInterface: {args.ifaces}\n"
                 f"\tInflux address: {args.host}\n"
-                f"\tInflux port: {args.int_port}")
+                f"\tInflux port: {args.influx_port}")
 
 
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
         host=args.host, database=args.database, 
         int_time=args.int_time, event_mode=args.event_mode, 
-        log_level=args.log_level, log_raports_lvl = args.log_raports_lvl
+        log_level=args.log_level, log_raports_lvl = args.log_raports_lvl,
+        influx_port = args.influx_port
         )
 
     for iface in args.ifaces:
