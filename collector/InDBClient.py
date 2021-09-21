@@ -26,7 +26,7 @@ def parse_params():
     parser.add_argument("-H", "--host", default="localhost",
         help="InfluxDB server address. Default: localhost")
     
-    parser.add_argument("-P", "--port", default=8086,
+    parser.add_argument("-INFP", "--port", default=8086,
      help="InfluxDB server port. Default: 8086")
 
     parser.add_argument("-D", "--database", default="int_telemetry_db",
