@@ -77,7 +77,7 @@ Image: https://hub.docker.com/repository/docker/jaxa/int_collector
 
 Instructions for the owner of kernel 4.15.0-154-generic:
 - docker pull jaxa/int_collector
-- docker run --name INTcollector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
+- docker run --name int-collector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
 
 Available environment variables:
 
@@ -107,7 +107,7 @@ If kernel is in an older version, you can update it:
 If you don't want to update kernel or it's in a newer version, you have to build a new docker image from the source:
 - git clone https://github.com/GEANT-DataPlaneProgramming/INT-collector
 - cd INT-collector
-- docker build -t INTcollector .
+- docker build -t int-collector .
 # Pulication
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
 
