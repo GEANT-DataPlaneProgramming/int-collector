@@ -308,7 +308,7 @@ if __name__ == "__main__":
     parser.add_argument("-i","--interface", type=str, default='veth_1',
         help="Interface through which packets will be sent, Default: veth_1")
     parser.add_argument("-n", "--number", default=1000, type=int,
-        help="Number of generating packets per one second. Default: 1000")
+        help="Number of sending packets per second. Only works with `l' option. Default: 1000;")
     parser.add_argument("-v", "--verbose", default = 0, type=int, choices=range(0,2),
         help='Scapy verbose, 0 - disable, 1 - enable. Default: 0')
     parser.add_argument("-log", "--log_level", default= 20, type=int,

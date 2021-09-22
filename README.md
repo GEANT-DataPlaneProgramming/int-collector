@@ -125,10 +125,10 @@ Optional arguments:
 
       -i INTERFACE - Interface through which packets will be sent, Default: veth_1;
 
-      -n NUMBER - Number of generating packets per one second. Only works with `l' option. Default: 1000;
+      -n NUMBER - Number of sending packets per second. Only works with `l' option. 1000 generated packets with the 'l' option are duplicated up to the indicated number. Default: 1000;
 
       -v {0,1} - Scapy verbose, 0 - disable, 1 - enable. Default: 0;
-      
+
       -log LOG_LEVEL - log level - CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20; DEBUG = 10; NOTSET = 0; Default: 20.
 # Pulication
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
