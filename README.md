@@ -42,8 +42,7 @@ The INT collector implementation changes and testing was done within the GEANT D
 
 ## Server setup
 
-* For Prometheus: Install and run Prometheus server from https://prometheus.io . Config the `.yml` file to scrape the INTCollector client. Address should be `localhost` if Prometheus server and INTCollector run on the same machine.
-* For InfluxDB: InfluxDB python client requires InfluxDB sever v1.2.4:
+* InfluxDB python client requires InfluxDB sever v1.2.4:
    ``` shell
       wget https://dl.influxdata.com/influxdb/releases/influxdb_1.2.4_amd64.deb
       sudo dpkg -i influxdb_1.2.4_amd64.deb
@@ -58,15 +57,14 @@ The INT collector implementation changes and testing was done within the GEANT D
     sudo ip link set dev veth_0 up
     sudo ip link set dev veth_1 up
   ```
-  A script creating interfaces is available in folder INT-collector/scripts/:
+  A script creating interfaces is available in folder `int-collector/scripts/`:
   ```
   cd INT-collector
   sudo sh scipts/create_vinterfaces.sh
   ```
 * Run INTCollector at the network interface that can listen to INT Telemetry reports. If you create `veth` pair above, you can send reports to `veth_0` and listen to reports at `veth_1`:
    ``` shell
-      sudo python3 PTClient.py veth_1 # For Prometheus
-      sudo python3 InDBClient.py veth_1 # For InfluxDB
+      sudo python3 InDBClient.py veth_1
    ```
 
 ## Notes
