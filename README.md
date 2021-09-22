@@ -1,4 +1,17 @@
-# INTCollector
+# Table of contents
+
+- [__INTCollector__](#intcollector)
+- [__Installation__](#installation)
+   - [Collector setup](#collector-setup)
+   - [Server setup](#server-setup)
+- [__Usage__](#usage)
+   - [Notes](#notes)
+   - [Test](#test)
+- [__Start in Docker container__](#start-in-docker-container)
+- [__INT packages generator__](#int-packages-generator)
+- [__Publication__](#publication)
+
+# __INTCollector__
 A high-performance collector to process INT Telemetry reports, and send data to database servers such as Prometheus and InfluxDB.
 Currently, INTCollector supports [Telemetry report v1.0](https://github.com/p4lang/p4-applications/tree/master/docs), and [INT spec v1.0](https://github.com/p4lang/p4-applications/tree/master/docs) with TCP/UDP encapsulation.
 `INTCollector` use [eBPF](https://www.iovisor.org/technology/ebpf) and [XDP](https://www.iovisor.org/technology/xdp), which require recent linux kernel. For best practice, kernel version >= v4.14 should be used.
@@ -9,7 +22,7 @@ The INT collector implementation changes and testing was done within the GEANT D
 * https://wiki.geant.org/display/NETDEV/INT
 
 
-# Installation
+# __Installation__
 ## Collector setup
 
 * Install Ubuntu VM. We only tested INTCollector with Ubuntu 18.04 64 bit with kernel v4.15. Both python2 and python3 should work.
@@ -37,7 +50,7 @@ The INT collector implementation changes and testing was done within the GEANT D
       sudo systemctl start influxdb
    ```
 
-# Usage
+# __Usage__
 
 * [Optional] create `veth` pair for testing. We can send INT Telemetry reports to one endpoint, and let INTCollector listens to the reports at the other endpoint.
   ``` shell
@@ -70,7 +83,7 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
    sudo python3 -m pytest -v
 ```
 
-# Start in Docker container 
+# __Start in Docker container__
 Container aviable on DockerHub works only on host with kernel 4.15.0-154-generic.
 
 Image: https://hub.docker.com/repository/docker/jaxa/int_collector
@@ -109,7 +122,7 @@ If you don't want to update kernel or it's in a newer version, you have to build
 - cd INT-collector
 - docker build -t int-collector .
 
-# INT packages generator
+# __INT packages generator__
 
 [`int_package_generator.py`](https://github.com/GEANT-DataPlaneProgramming/int-collector/blob/master/benchmark/int_package_generator.py) can generate INT packets and send them to the specified interface. 
 
@@ -130,7 +143,7 @@ Optional arguments:
       -v {0,1} - Scapy verbose, 0 - disable, 1 - enable. Default: 0;
 
       -log LOG_LEVEL - log level - CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20; DEBUG = 10; NOTSET = 0; Default: 20.
-# Pulication
+# __Publication__
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
 
 
