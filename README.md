@@ -60,7 +60,7 @@ The INT collector implementation changes and testing was done within the GEANT D
 
 * If InfluxDB server does not run in the same machine as the collector, we need to specify the server address with `-H` option when running `InDBClient.py`.
 * Run the collector with `-h` option for more help. If there are any missing libraries, install them using `pip`.
-* INT Telemetry reports in pcap file can be created using `benchmark/INTReport.py`.
+* INT Telemetry reports in pcap file can be created using `benchmark/INTReport.py` or `benchmark/int_package_generator.py`.
 * If there are errors that eBPF program cannot load (such as _cannot allocate memory_), please ensure that the network interfaces the INTCollector listens to has XDP support by current kernel. Check [here](https://github.com/iovisor/bcc/blob/master/docs/kernel-versions.md#xdp).
 
 ## Test
@@ -108,6 +108,28 @@ If you don't want to update kernel or it's in a newer version, you have to build
 - git clone https://github.com/GEANT-DataPlaneProgramming/INT-collector
 - cd INT-collector
 - docker build -t int-collector .
+
+# INT packages generator
+
+[`int_package_generator.py`](https://github.com/GEANT-DataPlaneProgramming/int-collector/blob/master/benchmark/int_package_generator.py) can generate INT packets and send them to the specified interface. 
+
+Optional arguments:
+ 
+      -h - show help message;
+
+      -c - generating only two packets with constant values. One per second;
+
+      -l - generates 1k packets with linearly growing values;
+
+      -hop NUMBER - Number of hops in packet. Min - 1,  Max - 6. Default: 3;
+
+      -i INTERFACE - Interface through which packets will be sent, Default: veth_1;
+
+      -n NUMBER - Number of generating packets per one second. Only works with `l' option. Default: 1000;
+
+      -v {0,1} - Scapy verbose, 0 - disable, 1 - enable. Default: 0;
+      
+      -log LOG_LEVEL - log level - CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20; DEBUG = 10; NOTSET = 0; Default: 20.
 # Pulication
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
 
