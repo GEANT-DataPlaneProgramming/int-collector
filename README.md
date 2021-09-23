@@ -11,12 +11,12 @@
 - [__INT packages generator__](#int-packages-generator)
 - [__Publication__](#publication)
 
-# __INTCollector__
+# int-collector
 A high-performance collector to process INT Telemetry reports, and send data to database servers such as Prometheus and InfluxDB.
-Currently, INTCollector supports [Telemetry report v1.0](https://github.com/p4lang/p4-applications/tree/master/docs), and [INT spec v1.0](https://github.com/p4lang/p4-applications/tree/master/docs) with TCP/UDP encapsulation.
-`INTCollector` use [eBPF](https://www.iovisor.org/technology/ebpf) and [XDP](https://www.iovisor.org/technology/xdp), which require recent linux kernel. For best practice, kernel version >= v4.14 should be used.
+Currently, int-collector supports [Telemetry report v1.0](https://github.com/p4lang/p4-applications/tree/master/docs), and [INT spec v1.0](https://github.com/p4lang/p4-applications/tree/master/docs) with TCP/UDP encapsulation.
+`int-collector` use [eBPF](https://www.iovisor.org/technology/ebpf) and [XDP](https://www.iovisor.org/technology/xdp), which require recent linux kernel. For best practice, kernel version >= v4.14 should be used.
 
-This version of INT collector is modified version of the following project: [BPFCollector](https://gitlab.com/tunv_ebpf/BPFCollector/tree/master).
+This int-collector is modified version of the following project: [BPFCollector](https://gitlab.com/tunv_ebpf/BPFCollector/tree/master).
 
 The INT collector implementation changes and testing was done within the GEANT Data Plane Programmibilty activity:
 * https://wiki.geant.org/display/NETDEV/INT
@@ -25,11 +25,11 @@ The INT collector implementation changes and testing was done within the GEANT D
 # __Installation__
 ## Collector setup
 
-* Install Ubuntu VM. We only tested INTCollector with Ubuntu 18.04 64 bit with kernel v4.15. Both python2 and python3 should work.
+* Install Ubuntu VM. We only tested int-collector with Ubuntu 18.04 64 bit with kernel v4.15. Both python2 and python3 should work.
 * Install `bcc` package from https://github.com/iovisor/bcc.
 * Clone this repo
    ``` shell
-      git clone https://gitlab.com/tunv_ebpf/BPFCollector.git
+      git clone https://github.com/GEANT-DataPlaneProgramming/int-collector.git
    ```
 * Install requirements
    ``` shell
@@ -59,10 +59,10 @@ The INT collector implementation changes and testing was done within the GEANT D
   ```
   A script creating interfaces is available in folder `int-collector/scripts/`:
   ```
-  cd INT-collector
+  cd int-collector
   sudo sh scipts/create_vinterfaces.sh
   ```
-* Run INTCollector at the network interface that can listen to INT Telemetry reports. If you create `veth` pair above, you can send reports to `veth_0` and listen to reports at `veth_1`:
+* Run int-collector at the network interface that can listen to INT Telemetry reports. If you create `veth` pair above, you can send reports to `veth_0` and listen to reports at `veth_1`:
    ``` shell
       sudo python3 InDBClient.py veth_1
    ```
