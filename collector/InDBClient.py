@@ -7,6 +7,7 @@ import sys
 import logging
 
 from argparse import RawTextHelpFormatter
+from typing import List
 import pyximport
 from scapy.plist import QueryAnswer; pyximport.install()
 import InDBCollector
@@ -45,6 +46,11 @@ def parse_params():
         help="Event detection mode: INTERVAL or THRESHOLD. \
             Option -p is disabled for THRESHOLD and is hard-coded instead")
 
+    parser.add_argument("-T", "--thresholds_size", nargs='+', default = [50, 50, 50, 50, 50, 100], type=int, 
+        help="Size of thresholfs. List of arguments is required. \
+            [HOP_LATENCY, FLOW_LATENCY, QUEUE_OCCUP, QUEUE_CONGEST, TX_UTILIZE, TIME_GAP_W] \
+            Default list: [50, 50, 50, 50, 50, 100] ")
+
     parser.add_argument("-l", "--log_level", default=20, type=int,
         help="CRITICAL = 50\
             ERROR = 40;\
@@ -65,12 +71,21 @@ def parse_params():
 if __name__ == "__main__":
 
     args = parse_params()
-
     logger.setLevel(args.log_level)
 
-    logger.debug(f"\n\tInterface: {args.ifaces}\n"
+    thresholds = args.thresholds_size
+    hop_latency_t, flow_latency_t, queue_occup_t, queue_congest_t, tx_utilize_t, time_gap_w_t = thresholds
+
+    logger.info(f"\n\tInterface: {args.ifaces}\n"
                 f"\tInflux address: {args.host}\n"
-                f"\tInflux port: {args.influx_port}")
+                f"\tInflux port: {args.influx_port}\n"
+                f"\tThresholds size: {thresholds}\n"
+                f"\t\t--> Hop latency: {hop_latency_t}\n"
+                f"\t\t--> Flow latency: {flow_latency_t}\n"
+                f"\t\t--> Queue occup: {queue_occup_t}\n"
+                f"\t\t--> Queue congest: {queue_congest_t}\n"
+                f"\t\t--> TX utilize: {tx_utilize_t}\n"
+                f"\t\t--> Time gap w: {time_gap_w_t}\n")
 
 
     collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
