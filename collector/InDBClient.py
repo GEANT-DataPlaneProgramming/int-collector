@@ -42,9 +42,6 @@ def parse_params():
     parser.add_argument("-t", "--int_time", action='store_true',
         help="Use INT timestamp instead of local time")
 
-    parser.add_argument("-e", "--event_mode", default="THRESHOLD",
-        help="Event detection mode: INTERVAL or THRESHOLD. \
-            Option -p is disabled for THRESHOLD and is hard-coded instead")
 
     parser.add_argument("-T", "--thresholds_size", nargs='+', default = [50, 50, 50, 50, 50, 100], type=int, 
         help="Size of thresholfs. List of arguments is required. \
@@ -92,8 +89,7 @@ if __name__ == "__main__":
         int_dst_port=args.int_port, 
         host=args.host, 
         database=args.database, 
-        int_time=args.int_time, 
-        event_mode=args.event_mode,
+        int_time=args.int_time,
         thresholds_size=thresholds, 
         log_level=args.log_level, 
         log_raports_lvl = args.log_raports_lvl,
@@ -135,28 +131,6 @@ if __name__ == "__main__":
                 collector.client.write_points(points=data[0])
                 logger.debug(f'Len of data: {len(data)}')
 
-
-    # A separated thread to push data
-    if args.event_mode == "INTERVAL":
-        def _periodically_push():
-            cnt = 0
-            while not push_stop_flag.is_set():
-                # use cnt to partition sleep time,
-                # so Ctrl-C could terminate the program earlier
-                time.sleep(1)
-                cnt += 1
-                if cnt < args.period:
-                    continue
-                cnt = 0
-
-                data = collector.collect_data()
-                if data:
-                    collector.client.write_points(points=data, protocol=protocol)
-                    logger.debug(f'Periodically push: {len(data[0])}')
-
-        periodically_push = threading.Thread(target=_periodically_push)
-        periodically_push.start()
-
     event_push = threading.Thread(target=_event_push)
     event_push.start()
 
@@ -176,8 +150,6 @@ if __name__ == "__main__":
 
     finally:
         push_stop_flag.set()
-        if args.event_mode == "INTERVAL":
-            periodically_push.join()
         event_push.join()
 
         collector.detach_all_iface()

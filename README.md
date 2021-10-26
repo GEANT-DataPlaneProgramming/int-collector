@@ -110,9 +110,6 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
    -P EVENT_PERIOD, --event_period EVENT_PERIOD
                            Time period to push event data. Default: 0
    -t, --int_time          Use INT timestamp instead of local time
-   -e EVENT_MODE, --event_mode EVENT_MODE
-                           Event detection mode: INTERVAL or THRESHOLD. Option -p
-                           is disabled for THRESHOLD and is hard-coded instead
    -l LOG_LEVEL, --log_level LOG_LEVEL
                            CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20;
                            DEBUG = 10; NOTSET = 0; Default: 20

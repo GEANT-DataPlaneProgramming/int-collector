@@ -96,43 +96,43 @@ def end_to_end_influxdb_v10(cmd):
 
         measurements_flag = False
         for measurement in idbclient.get_list_measurements():
-            if measurement['name'] == 'int_telemetry_new_collector':
+            if measurement['name'] == 'int_telemetry':
                 measurements_flag = True
         assert measurements_flag == True
 
-        r = idbclient.query('select * from int_telemetry_new_collector', epoch='ns')
-        e2e_report = list(r.get_points(measurement = 'int_telemetry_new_collector', 
+        r = idbclient.query('select * from int_telemetry', epoch='ns')
+        e2e_report = list(r.get_points(measurement = 'int_telemetry', 
                                      tags={"seq": 5}))[0]
         assert (e2e_report['origts']==700 and e2e_report['dstts']==700)
 
-        hop_index_0 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_0 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '0'}))[0]
         assert hop_index_0['hop_delay']==20
 
-        hop_index_1 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_1 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '1'}))[0]
         assert hop_index_1['hop_delay']==20
 
-        hop_index_2 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_2 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '2'}))[0]
         assert hop_index_2['hop_delay']==20
 
         sendp(p1, iface=inif)
         time.sleep(1)
-        r = idbclient.query('select * from int_telemetry_new_collector', epoch='ns')
-        e2e_report = list(r.get_points(measurement = 'int_telemetry_new_collector', 
+        r = idbclient.query('select * from int_telemetry', epoch='ns')
+        e2e_report = list(r.get_points(measurement = 'int_telemetry', 
                                        tags = {'seq': 200}))[0]
         assert (e2e_report['origts']==700 and e2e_report['dstts']==820)
 
-        hop_index_0 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_0 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '0'}))[0]
         assert hop_index_0['hop_delay']==20
 
-        hop_index_1 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_1 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '1'}))[0]
         assert hop_index_1['hop_delay']==20
 
-        hop_index_2 = list(r.get_points(measurement = 'int_telemetry_new_collector',
+        hop_index_2 = list(r.get_points(measurement = 'int_telemetry',
                                         tags = {'hop_index': '2'}))[0]
         assert hop_index_2['hop_delay']==20
 
