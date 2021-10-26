@@ -88,10 +88,15 @@ if __name__ == "__main__":
                 f"\t\t--> Time gap w: {time_gap_w_t}\n")
 
 
-    collector = InDBCollector.InDBCollector(int_dst_port=args.int_port, 
-        host=args.host, database=args.database, 
-        int_time=args.int_time, event_mode=args.event_mode, 
-        log_level=args.log_level, log_raports_lvl = args.log_raports_lvl,
+    collector = InDBCollector.InDBCollector(
+        int_dst_port=args.int_port, 
+        host=args.host, 
+        database=args.database, 
+        int_time=args.int_time, 
+        event_mode=args.event_mode,
+        thresholds_size=thresholds, 
+        log_level=args.log_level, 
+        log_raports_lvl = args.log_raports_lvl,
         influx_port = args.influx_port
         )
 

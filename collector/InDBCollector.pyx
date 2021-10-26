@@ -61,7 +61,8 @@ class InDBCollector(object):
                 host="localhost", 
                 influx_port = 8086,
                 database="int_telemetry_db",
-                event_mode="THRESHOLD", 
+                event_mode="THRESHOLD",
+                thresholds_size=[50, 50, 50, 50, 50, 100], 
                 log_level=20, 
                 log_raports_lvl = 20):
         super(InDBCollector, self).__init__()
@@ -71,6 +72,12 @@ class InDBCollector(object):
         self.INT_DST_PORT = int_dst_port
         self.EVENT_MODE = event_mode
         self.int_time = int_time
+        self.hop_latency_t = thresholds_size[0]
+        self.flow_latency_t = thresholds_size[1]
+        self.queue_occup_t = thresholds_size[2]
+        self.queue_congest_t = thresholds_size[3]
+        self.tx_utilize_t = thresholds_size[4]
+        self.time_gap_w_t = thresholds_size[5]
 
         self.reports = []
         self.last_dstts = {} # save last `dstts` per each monitored flow
@@ -87,7 +94,13 @@ class InDBCollector(object):
                     "-D_MAX_INT_HOP=%s" % self.MAX_INT_HOP,
                     "-D_INT_DST_PORT=%s" % self.INT_DST_PORT,
                     "-D_EVENT_MODE=%s" % self.EVENT_MODE,
-                    "-D_SERVER_MODE=%s" % self.SERVER_MODE])
+                    "-D_SERVER_MODE=%s" % self.SERVER_MODE,
+                    "-D_HOP_LATENCY=%s" % self.hop_latency_t,
+                    "-D_FLOW_LATENCY=%s" % self.flow_latency_t,
+                    "-D_QUEUE_OCCUP=%s" % self.queue_occup_t,
+                    "-D_QUEUE_CONGEST=%s" % self.queue_congest_t,
+                    "-D_TX_UTILIZE=%s" % self.tx_utilize_t,
+                    "-D_TIME_GAP_W=%s" % self.time_gap_w_t])
         self.fn_collector = self.bpf_collector.load_func("collector", BPF.XDP)
 
         # get all the info table

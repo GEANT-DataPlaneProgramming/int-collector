@@ -56,12 +56,12 @@
 
 #ifdef USE_THRESHOLD
 // TODO: set these values from use space
-#define HOP_LATENCY 50
-#define FLOW_LATENCY 50
-#define QUEUE_OCCUP 50
-#define QUEUE_CONGEST 50
-#define TX_UTILIZE 50
-#define TIME_GAP_W 100 //ns
+#define HOP_LATENCY _HOP_LATENCY
+#define FLOW_LATENCY _FLOW_LATENCY
+#define QUEUE_OCCUP _QUEUE_OCCUP
+#define QUEUE_CONGEST _QUEUE_CONGEST
+#define TX_UTILIZE _TX_UTILIZE
+#define TIME_GAP_W _TIME_GAP_W //ns
 
 // Threshold only for influxDB
 #ifdef USE_PROMETHEUS
