@@ -49,4 +49,4 @@ if __name__ == "__main__":
     if args.constant:        
        logger.info(f'Start of generating of packages')
        generator = ConstantGenerator(args.hops, args.log_level)
-       generator.send_two_packets()
+       generator.send_two_packets(args.interface, args.verbose)
