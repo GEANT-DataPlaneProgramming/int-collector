@@ -1,4 +1,12 @@
-from scapy.all import *
+from scapy.fields import (
+    BitField,
+    IntField,
+    XByteField,
+    XShortField,
+    FieldListField,
+    XIntField,
+)
+from scapy.packet import Packet
 
 
 """
@@ -41,7 +49,7 @@ class TelemetryReport_v10(Packet):
     ]
 
 
-""" 
+"""
 INT header version 1.0
     header int_header_t {
         bit<4>  ver;
@@ -51,9 +59,9 @@ INT header version 1.0
         bit<1>  m;
         bit<7>  rsvd1;
         bit<3>  rsvd2;
-        bit<5>  hop_metadata_len;   // the length of the metadata added by a single INT node (4-byte words)
-        bit<8>  remaining_hop_cnt;  // how many switches can still add INT metadata
-        bit<16>  instruction_mask;   
+        bit<5>  hop_metadata_len;#the length of the metadata added by a single INT node 4-byte words
+        bit<8>  remaining_hop_cnt; #how many switches can still add INT metadata
+        bit<16>  instruction_mask;
         bit<16> rsvd3;
     }
 """

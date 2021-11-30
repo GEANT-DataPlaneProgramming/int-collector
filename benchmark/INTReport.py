@@ -1,5 +1,17 @@
 from __future__ import print_function
-from scapy.all import *
+from scapy.fields import (
+    BitField,
+    IntField,
+    XByteField,
+    XShortField,
+    XIntField,
+    FieldListField,
+)
+from scapy.packet import Packet
+from scapy.utils import wrpcap
+from scapy.layers.l2 import Ether
+from scapy.layers.inet import IP, UDP
+from scapy.sendrecv import sendp
 import time
 import argparse
 
@@ -419,7 +431,7 @@ if __name__ == "__main__":
             for i in range(0, n_fl):
                 print("flow: ", i)
                 # 1000000 pps; 1 abnormal packet is 2 events (11+j -> 1000, and 1000 -> 11+j)
-                for l in range(0, TMP / n_event):
+                for k in range(0, TMP / n_event):
                     INTdata = []
                     for j in range(0, n_sw):
                         addedINT = [
@@ -432,8 +444,9 @@ if __name__ == "__main__":
                             5 << 16 | 10 + j,
                             11 + j,
                         ]
-                        if l < TMP / (n_event * 2) and i == 0 and j == 0:
-                            # use j as sw_id to ensure diff switches so that the number of event is correct
+                        if k < TMP / (n_event * 2) and i == 0 and j == 0:
+                            # use j as sw_id to ensure diff switches
+                            # so that the number of event is correct
                             addedINT = [
                                 j,
                                 2 << 16 | 3,

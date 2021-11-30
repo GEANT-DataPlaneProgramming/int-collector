@@ -1,9 +1,7 @@
-from __future__ import print_function
-from scapy import data
-from scapy.all import *
+from scapy.sendrecv import sniff
 import time
 import argparse
-from datetime import date, datetime
+from datetime import datetime
 
 if __name__ == "__main__":
 

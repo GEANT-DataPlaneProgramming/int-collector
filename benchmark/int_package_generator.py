@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 import logging
-from datetime import datetime
 from modules.generators import LinearGenerator, ConstantGenerator
 
 
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     logger.setLevel(args.log_level)
 
     if args.linear:
-        logger.info(f"Start of generating of packages")
+        logger.info("Start of generating of packages")
         generator = LinearGenerator(
             hops=args.hops,
             log_level=args.log_level,
@@ -93,6 +92,6 @@ if __name__ == "__main__":
         generator.send_packets(mode, args.interface, args.verbose)
 
     if args.constant:
-        logger.info(f"Start of generating of packages")
+        logger.info("Start of generating of packages")
         generator = ConstantGenerator(args.hops, args.log_level)
         generator.send_two_packets(args.interface, args.verbose)

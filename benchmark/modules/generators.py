@@ -1,5 +1,4 @@
 import logging
-from scapy.base_classes import Gen
 from scapy.layers.l2 import Ether
 from scapy.layers.inet import IP, UDP
 from scapy.sendrecv import sendp, sendpfast
@@ -81,7 +80,7 @@ class LinearGenerator(Generator):
                     self.packets.append(self.packets[i])
                 else:
                     self.generator_logger.info(
-                        f"The rest of the packages were duplicated."
+                        "The rest of the packages were duplicated."
                     )
                     self.generator_logger.info(
                         f"Totalnumber of packages ready for transsmision is {len(self.packets)}\n"

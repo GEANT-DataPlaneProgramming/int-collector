@@ -6,10 +6,7 @@ import time
 import sys
 import logging
 
-from argparse import RawTextHelpFormatter
-from typing import List
 import pyximport
-from scapy.plist import QueryAnswer
 
 pyximport.install()
 import InDBCollector
@@ -166,12 +163,12 @@ if __name__ == "__main__":
         for db in collector.client.get_list_database():
             collector.client.drop_database(db["name"])
         collector.client.create_database(args.database)
-        logger.info(f"Database has been cleared.")
+        logger.info("Database has been cleared.")
 
     databases_list = [x["name"] for x in collector.client.get_list_database()]
     if not (args.database in databases_list):
         collector.client.create_database(args.database)
-        logger.info(f"Database has been created.")
+        logger.info("Database has been created.")
 
     push_stop_flag = threading.Event()
 

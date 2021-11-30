@@ -5,9 +5,11 @@ import time
 import os
 import signal
 import sys
-from scapy.all import *
+from scapy.sendrecv import sendp
+from scapy.layers.l2 import Ether
+from scapy.layers.inet import IP, UDP
 from influxdb import InfluxDBClient
-from int_package_generator import *
+from modules.int_metadata import INTMetadata
 
 sys.path.insert(0, "./benchmark")
 from INTReport import TelemetryReport_v10, INT_v10
@@ -31,7 +33,7 @@ def start_collector(cmd):
         return None
 
     # p = subp.stdout.readline()
-    assert subp.poll() == None, "Error loading XDP program"
+    assert subp.poll() is None, "Error loading XDP program"
 
     time.sleep(3)
 
@@ -45,7 +47,7 @@ def setup_veth():
     time.sleep(0.5)
     yield
 
-    if subp != None:
+    if subp is not None:
         subp.send_signal(signal.SIGINT)
         time.sleep(0.5)
     idbclient.drop_database(test_db)
@@ -54,10 +56,9 @@ def setup_veth():
 
 def end_to_end_influxdb_v10(cmd):
     start_collector(cmd)
-    assert subp != None, "Fail subprocess to load XDP program"
+    assert subp is not None, "Fail subprocess to load XDP program"
 
     int_length = 3 * 8 + 3
-    packets = []
     int_metadata = INTMetadata(3)
     int_metadata.create_metadata()
 
@@ -109,14 +110,14 @@ def end_to_end_influxdb_v10(cmd):
         for db in idbclient.get_list_database():
             if test_db == db["name"]:
                 db_flag = True
-        assert db_flag == True
+        assert db_flag is True
         time.sleep(1)
 
         measurements_flag = False
         for measurement in idbclient.get_list_measurements():
             if measurement["name"] == "int_telemetry":
                 measurements_flag = True
-        assert measurements_flag == True
+        assert measurements_flag is True
 
         r = idbclient.query("select * from int_telemetry", epoch="ns")
         e2e_report = list(r.get_points(measurement="int_telemetry", tags={"seq": 5}))[0]
