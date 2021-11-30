@@ -1,8 +1,12 @@
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 """
     INTMetadata = [switch_id, ingress_port_id, egress_port_id, hop_latency, queue_id, queue_occups,
                 ingress_timestamp, egress_timestamp, lv2_in_e_port, tx_utilizes ]
 """
-
 
 class INTMetadata:
     def __init__(
@@ -70,3 +74,22 @@ class INTMetadata:
 
         for hop in range(0, self.__hops):
             self.all_int_metadata[2 + hop * 8] += value * (hop + 1)
+    
+    @staticmethod
+    def check_field(field_name):
+        if hasattr(field_name):
+                pass
+        else:
+            logger.exception(f"'{field_name}' field does not exist.")
+
+    def increment_per_hop(self, field_name, value):
+
+        self.check_field(field_name)
+
+    def increment_per_packet(self, field_name, value):
+        
+        self.check_field(field_name)
+
+    def increment_per_hop_and_packet(self, field_name, value):
+        
+        self.check_field(field_name)
