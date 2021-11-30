@@ -1,7 +1,7 @@
 from scapy.all import *
 
 
-'''
+"""
 header int_report_fixed_header_t {
     bit<4> ver;
     bit<4> len;
@@ -17,7 +17,8 @@ header int_report_fixed_header_t {
     bit<32> ingress_tstamp;
 }
 const bit<8> REPORT_FIXED_HEADER_LEN = 16;
-'''
+"""
+
 
 class TelemetryReport_v10(Packet):
 
@@ -25,8 +26,8 @@ class TelemetryReport_v10(Packet):
 
     # default value a for telemetry report with INT
     fields_desc = [
-        BitField("ver" , 1 , 4),
-        BitField("len" , 1 , 4),
+        BitField("ver", 1, 4),
+        BitField("len", 1, 4),
         BitField("nProto", 0, 3),
         BitField("repMdBits", 0, 6),
         BitField("reserved", None, 6),
@@ -34,12 +35,13 @@ class TelemetryReport_v10(Packet):
         BitField("q", 0, 1),
         BitField("f", 1, 1),
         BitField("hw_id", None, 6),
-
         IntField("swid", None),
         IntField("seqNumber", None),
-        IntField("ingressTimestamp", None) ]
+        IntField("ingressTimestamp", None),
+    ]
 
-''' 
+
+""" 
 INT header version 1.0
     header int_header_t {
         bit<4>  ver;
@@ -54,7 +56,8 @@ INT header version 1.0
         bit<16>  instruction_mask;   
         bit<16> rsvd3;
     }
-'''
+"""
+
 
 class INT_v10(Packet):
 
@@ -66,7 +69,6 @@ class INT_v10(Packet):
         XByteField("length", None),
         BitField("dscp", None, 6),
         BitField("shimRsvd2", None, 2),
-
         BitField("ver", 0, 4),
         BitField("rep", 0, 2),
         BitField("c", 0, 1),
@@ -76,9 +78,9 @@ class INT_v10(Packet):
         BitField("rsvd2", 0, 3),
         BitField("hopMLen", None, 5),
         XByteField("remainHopCnt", None),
-
         XShortField("ins", None),
         XShortField("rsvd3", 0),
-
-        FieldListField("INTMetadata", [], XIntField("", None), count_from=lambda p:p.length - 2)
-        ]
+        FieldListField(
+            "INTMetadata", [], XIntField("", None), count_from=lambda p: p.length - 2
+        ),
+    ]
