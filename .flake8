@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 100
+
+per-file-ignores =
+    InDBClient.py: E402
+    test_e2e.py: E402
