@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_params():
-    parser = argparse.ArgumentParser(
-        description="InfluxBD INTCollector client."
-    )  # , formatter_class=RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description="InfluxBD INTCollector client.")
 
     parser.add_argument(
         "ifaces", nargs="+", help="List of ifaces to receive INT reports."

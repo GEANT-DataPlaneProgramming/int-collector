@@ -1,7 +1,6 @@
-from __future__ import print_function
 import argparse
 import logging
-from modules.generators import LinearGenerator, ConstantGenerator
+from modules.generators import LinearGenerator, ConstantGenerator, Editable_Generator
 
 
 logging.basicConfig(level=logging.INFO)
@@ -12,16 +11,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="INT Telemetry Report pkt gen.")
     parser.add_argument(
-        "-c",
-        "--constant",
-        action="store_true",
-        help="Generating two packets with constant values. One per second. Constatnt Generator.",
-    )
-    parser.add_argument(
-        "-l",
-        "--linear",
-        action="store_true",
-        help="Generates packets with linearly growing values. Linear Generator.",
+        "-t",
+        "--generator_type",
+        default="C",
+        type=str,
+        choices=("L", "C", "E"),
+        help="Choose type of generator: L - linear, C - constant, E - editable",
     )
     parser.add_argument(
         "-hop",
@@ -78,7 +73,7 @@ if __name__ == "__main__":
 
     logger.setLevel(args.log_level)
 
-    if args.linear:
+    if args.generator_type == "L":
         logger.info("Start of generating of packages")
         generator = LinearGenerator(
             hops=args.hops,
@@ -91,7 +86,13 @@ if __name__ == "__main__":
         )
         generator.send_packets(mode, args.interface, args.verbose)
 
-    if args.constant:
+    if args.generator_type == "C":
         logger.info("Start of generating of packages")
         generator = ConstantGenerator(args.hops, args.log_level)
         generator.send_two_packets(args.interface, args.verbose)
+
+    if args.generator_type == "E":
+        logger.info("Generate one packet, which one you can edit.")
+        generator = Editable_Generator(args.hops, args.log_level)
+        logger.info(f"{generator}")
+        generator.generate_packet()
