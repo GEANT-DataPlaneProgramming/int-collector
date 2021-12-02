@@ -72,7 +72,10 @@ class INTMetadata:
             self.lv2_in_e_port,
             self.tx_utilizes,
         ] * self.__hops
-
+        self.add_value_to_field_per_hop(5, 0)
+        self.add_value_to_field_per_hop(5, 2)
+        # self.add_value_to_field_per_hop(10, )
+        self.add_value_to_field_per_hop(7, 5)
         return self.all_int_metadata
 
     def edit_hop_latency(self, value=60):
@@ -85,6 +88,11 @@ class INTMetadata:
             logger.debug(f'Field {field_name} exist.')
         else:
             logger.exception(f"'{field_name}' field does not exist.")
+
+    def add_value_to_field_per_hop(self, value, position):
+        for hop in range(0, self.__hops):
+            self.all_int_metadata[position + hop * 8] += (value * (hop + 1))
+
 
     @staticmethod
     def get_position_of_field(field_name):
@@ -121,6 +129,7 @@ class INTMetadata:
             queue_id = self.queue_id
 
         return self.make_one_filed(queue_id, queue_occups)
+    
 
     def increment_per_hop(self, field_name, value):
 
@@ -129,27 +138,27 @@ class INTMetadata:
 
         if position_of_field is not (1, 3):
             for hop in range(0, self.__hops):
-                self.all_int_metadata[position_of_field + hop * 8] += value * (hop + 1)
+                self.all_int_metadata[position_of_field + hop*8] += value
         elif field_name == "ingress_port":
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field1=value * (hop + 1))
+                ] += self.make_one_filed(field1= value)
         elif field_name == "egress_port":
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field2=value * (hop + 1))
+                ] += self.make_one_filed(field2= value)
         elif field_name == "queue_id":
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field1=value * (hop + 1))
+                ] += self.make_one_filed(field1=value)
         else:
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field1=value * (hop + 1))
+                ] += self.make_one_filed(field1=value)
 
     def increment_per_packet(self, field_name, value):
 

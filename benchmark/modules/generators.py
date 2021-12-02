@@ -220,7 +220,7 @@ class Editable_Generator(Generator):
             )
 
             value = int(input('Input value: '))
-            int_metadata.increment_per_hop(field_name, value )
+            int_metadata.increment_per_hop(field_name, value)
             self.generator_logger.info(int_metadata)
             stop_flag = input("Do you want edit some other field. y - yes, n - no: ")
 
