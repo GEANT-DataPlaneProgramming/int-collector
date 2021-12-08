@@ -245,7 +245,7 @@ struct egr_info_t {
 
 struct queue_id_t {
     u32 sw_id;
-    u16 q_id;
+    u8 q_id;
 };
 
 struct queue_info_t {
@@ -430,7 +430,7 @@ int collector(struct xdp_md *ctx) {
         }
         if (is_queue_occups) {
             CURSOR_ADVANCE(INT_data, cursor, sizeof(*INT_data), data_end);
-            flow_info.queue_ids[i] = (ntohl(*INT_data) >> 16) & 0xffff;
+            flow_info.queue_ids[i] = (ntohl(*INT_data) >> 24) & 0xffff;
             flow_info.queue_occups[i] = ntohl(*INT_data) & 0xffff;
         }
         if (is_ingr_times) {

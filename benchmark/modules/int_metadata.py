@@ -52,12 +52,16 @@ class INTMetadata:
         return metadata
 
     @staticmethod
-    def make_one_filed(field1, field2):
-        return field1 << 16 | field2
+    def make_one_filed(field1, field2, shift = 16):
+        return field1 << shift | field2
+
+    def add_to_queue_occups(self, value):
+        last_queue_value = self.all_int_metadata[3] >> 16
+        self.all_int_metadata[3] = self.make_one_filed
 
     def create_metadata(self):
 
-        self.__queue_id_occups = self.make_one_filed(self.queue_id, self.queue_occups)
+        self.__queue_id_occups = self.make_one_filed(self.queue_id, self.queue_occups, 24)
         self.__ing_egr_port_id = self.make_one_filed(
             self.ingress_port, self.egress_port
         )
@@ -110,26 +114,33 @@ class INTMetadata:
         }
         return fields_positions[field_name]
 
-    def edit_ports_id(self, ing_port=None, egr_port=None):
+    def set_new_ports_id(self, ing_port=None, egr_port=None):
 
-        if ing_port is None:
+        if ing_port is None and egr_port:
             ing_port = self.ingress_port
-
-        if egr_port is None:
+            self.all_int_metadata[1] = self.make_one_filed(ing_port, egr_port)
+        elif egr_port is None and ing_port:
             egr_port = self.egress_port
+            self.all_int_metadata[1] = self.make_one_filed(ing_port, egr_port)
+        else: 
+            self.all_int_metadata[1] = self.make_one_filed(ing_port, egr_port)
 
-        return self.make_one_filed(ing_port, egr_port)
+    # def set_queue_id(self, queue_id=None):
 
-    def edit_queue(self, queue_occups=None, queue_id=None):
+    #     if queue_occups is None:
+    #         queue_occups = self.queue_occups
+    #         self.all_int_metadata[3] = self.make_one_filed(queue_id, queue_occups)
+    #     elif queue_id is None:
+    #         queue_id = self.queue_id
+    #         self.all_int_metadata[3] = self.make_one_filed(queue_id, queue_occups)
+    #     else:
+    #         self.all_int_metadata[3] = self.make_one_filed(queue_id, queue_occups)
 
-        if queue_occups is None:
-            queue_occups = self.queue_occups
+    def edit_queue_occups(self, queue_occups=None):
 
-        if queue_id is None:
-            queue_id = self.queue_id
+        queue_id = self.queue_id
+        self.all_int_metadata[3] = self.make_one_filed
 
-        return self.make_one_filed(queue_id, queue_occups)
-    
 
     def increment_per_hop(self, field_name, value):
 
@@ -163,6 +174,7 @@ class INTMetadata:
     def increment_per_packet(self, field_name, value):
 
         self.check_field(field_name)
+
 
     def increment_per_hop_and_packet(self, field_name, hop_value, packet_value):
 

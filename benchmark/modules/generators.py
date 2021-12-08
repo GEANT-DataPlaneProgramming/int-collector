@@ -183,11 +183,11 @@ class Editable_Generator(Generator):
     }
 
     def __str__(self) -> str:
-        return json.dumps(self.fields_positions, indent=4)
+        return "Fieds of package" + json.dumps(self.fields_positions, indent=4)
 
     def generate_packet(self):
         self.generator_logger.info(
-            "Generate one packet. Now you can edit a fields of packets."
+            "Generate one packet. Now you can edit a fields of packet."
         )
 
         int_metadata = INTMetadata(self.hops)
