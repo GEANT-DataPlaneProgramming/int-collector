@@ -170,6 +170,7 @@ Available environment variables:
 |     LOG_LEVEL     | Displaying logs in terminal. This option makes sense when the container is launched in an interactive mode.</br> Available options: > 20 - no log </br> 20 - info </br> 10 - debug |        30        |
 | LOG_RAPORTS_LEVEL |    Displaying raports in terminal. This option makes sense when the container is launched in an interactive mode.</br> Available options: > 10 - no raports log</br> 10 - debug    |        20        |
 |       CLEAR       |                                                                          yes,y,YES,Y - clean the database                                                                          |        n         |
+| THRESHOLDS_SIZE | Allow to set thresholds size. The order of the thresholds in the list: </br> [HOP_LATENCY, FLOW_LATENCY, QUEUE_OCCUP, QUEUE_CONGEST, TX_UTILIZE, TIME_GAP_W] | 50 50 50 50 50 100 |
 </div>
 
 If kernel is in an older version, you can update it:
