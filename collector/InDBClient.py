@@ -6,9 +6,7 @@ import time
 import sys
 import logging
 
-import pyximport
-
-pyximport.install()
+import pyximport; pyximport.install()
 import InDBCollector
 
 logging.basicConfig(level=logging.INFO)

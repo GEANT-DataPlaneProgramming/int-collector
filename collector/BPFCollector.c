@@ -6,6 +6,10 @@
 #include <linux/ip.h>
 #include <linux/ipv6.h>
 
+typedef __u64 u64;
+typedef __u32 u32;
+typedef __u16 u16;
+typedef __u8 u8;
 
 #define ETHTYPE_IP 0x0800
 

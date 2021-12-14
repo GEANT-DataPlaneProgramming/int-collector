@@ -22,7 +22,6 @@ class Generator:
         self.generator_logger = logging.getLogger("Generator")
         self.generator_logger.setLevel(log_level)
 
-
 class LinearGenerator(Generator):
     def __init__(self, hops, log_level=20, packets_gen=1000, packets_sent=20000):
         super().__init__(hops, log_level)

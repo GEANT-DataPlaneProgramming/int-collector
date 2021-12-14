@@ -56,8 +56,8 @@ class INTMetadata:
         return field1 << shift | field2
 
     def add_to_queue_occups(self, value):
-        last_queue_value = self.all_int_metadata[3] >> 16
-        self.all_int_metadata[3] = self.make_one_filed
+        last_queue_occups_value = self.all_int_metadata[3] & 0x00ffffff 
+        self.all_int_metadata[3] = self.make_one_filed(field2 = last_queue_occups_value, shift=24)
 
     def create_metadata(self):
 
@@ -164,12 +164,12 @@ class INTMetadata:
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field1=value)
+                ] += self.make_one_filed(field1=value, shift=24)
         else:
             for hop in range(0, self.__hops):
                 self.all_int_metadata[
                     position_of_field + hop * 8
-                ] += self.make_one_filed(field1=value)
+                ] += self.make_one_filed(field2=value, shift=24)
 
     def increment_per_packet(self, field_name, value):
 
