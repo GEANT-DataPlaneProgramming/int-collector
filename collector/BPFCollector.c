@@ -4,6 +4,8 @@
 #include <linux/if_packet.h>
 #include <linux/if_vlan.h>
 #include <linux/ip.h>
+#include <linux/udp.h>
+#include <linux/tcp.h>
 #include <linux/ipv6.h>
 
 typedef __u64 u64;
@@ -42,6 +44,7 @@ typedef __u8 u8;
 #define QUEUE_CONGEST _QUEUE_CONGEST
 #define TX_UTILIZE _TX_UTILIZE
 #define TIME_GAP_W _TIME_GAP_W //ns
+#define WRAPPED 1
 
 #define CURSOR_ADVANCE(_target, _cursor, _len,_data_end) \
     ({  _target = _cursor; _cursor += _len; \
@@ -50,6 +53,7 @@ typedef __u8 u8;
 #define CURSOR_ADVANCE_NO_PARSE(_cursor, _len, _data_end) \
     ({  _cursor += _len; \
         if(unlikely(_cursor > _data_end)) return XDP_DROP; })
+
 
 #define ABS(a, b) ((a>b)? (a-b):(b-a))
 //--------------------------------------------------------------------
@@ -324,7 +328,7 @@ int collector(struct xdp_md *ctx) {
     void* cursor = (void*)(long)ctx->data;
 
     /*
-        Parse outer: Ether->IP->UDP->TelemetryReport.
+        Parse: Ether->IP->UDP->INT.
     */
 
     struct eth_tp *eth;
@@ -337,35 +341,20 @@ int collector(struct xdp_md *ctx) {
 
     if (unlikely(ip->protocol != IPPROTO_UDP))
         return XDP_PASS;
-    struct udphdr *udp;
-    CURSOR_ADVANCE(udp, cursor, sizeof(*udp), data_end);
-
-    if (unlikely(ntohs(udp->dest) != INT_DST_PORT))
-        return XDP_PASS;
-    // struct telemetry_report_t *tm_rp;
-    struct telemetry_report_v10_t *tm_rp;
-    CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
-
-    /*
-        Parse Inner: Ether->IP->UDP/TCP->INT.
-        we only consider Telemetry report with INT
-    */
-
-    CURSOR_ADVANCE_NO_PARSE(cursor, ETH_SIZE, data_end);
-
-    struct iphdr *in_ip;
-    CURSOR_ADVANCE(in_ip, cursor, sizeof(*in_ip), data_end);
 
     struct ports_t *in_ports;
     CURSOR_ADVANCE(in_ports, cursor, sizeof(*in_ports), data_end);
+    if (unlikely(ntohs(in_ports->dest) != INT_DST_PORT))
+        return XDP_PASS;
 
     // TODO: TCP with option (not fixed header len)?
-    u8 remain_size = (in_ip->protocol == IPPROTO_UDP)?
+    u8 remain_size = (ip->protocol == IPPROTO_UDP)?
                     (UDPHDR_SIZE - sizeof(*in_ports)) :
                     (TCPHDR_SIZE - sizeof(*in_ports));
+    // u8 remain_size = UDPHDR_SIZE - sizeof(*in_ports);
     CURSOR_ADVANCE_NO_PARSE(cursor, remain_size, data_end);
 
-    // CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
+    CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
 
     struct INT_shim_v10_t *INT_shim;
     CURSOR_ADVANCE(INT_shim, cursor, sizeof(*INT_shim), data_end);
@@ -391,16 +380,16 @@ int collector(struct xdp_md *ctx) {
     else if(0 == INT_data_len)                                                    num_INT_hop = 0;
 
     struct flow_info_t flow_info = {
-        .src_ip = ntohl(in_ip->saddr),
-        .dst_ip = ntohl(in_ip->daddr),
+        .src_ip = ntohl(ip->saddr),
+        .dst_ip = ntohl(ip->daddr),
         .src_port = ntohs(in_ports->source),
         .dst_port = ntohs(in_ports->dest),
-        .ip_proto = in_ip->protocol,
+        .ip_proto = ip->protocol,
 
         .num_INT_hop = num_INT_hop,
-        .flow_sink_time = ntohl(tm_rp->ingressTimestamp),
-        .seq_num = ntohl(tm_rp->seqNumber),
-        .switchID = ntohl(tm_rp->sw_id)
+        // .flow_sink_time = ntohl(tm_rp->ingressTimestamp),
+        // .seq_num = ntohl(tm_rp->seqNumber),
+        // .switchID = ntohl(tm_rp->sw_id)
     };
 
     u16 INT_ins = ntohs(INT_md_fix->ins);
@@ -506,9 +495,8 @@ int collector(struct xdp_md *ctx) {
 
     } else {
         // only need periodically push for flow info, so we can know the live status of the flow
-        if ((flow_info_p->flow_sink_time + TIME_GAP_W < flow_info.flow_sink_time)
-            | (is_hop_latencies & (ABS(flow_info.flow_latency, flow_info_p->flow_latency) > FLOW_LATENCY))
-            ) {
+        if (is_hop_latencies & (ABS(flow_info.flow_latency, flow_info_p->flow_latency) > FLOW_LATENCY))
+        {
 
             flow_info.is_flow = 1;
             is_update = 1;

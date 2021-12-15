@@ -9,26 +9,25 @@ from scapy.fields import (
 from scapy.packet import Packet
 
 
-"""
-header int_report_fixed_header_t {
-    bit<4> ver;
-    bit<4> len;
-    bit<3> nprot;
-    bit<6> rep_md_bits;
-    bit<6> reserved;
-    bit<1> d;
-    bit<1> q;
-    bit<1> f;
-    bit<6> hw_id;
-    bit<32> switch_id;
-    bit<32> seq_num;
-    bit<32> ingress_tstamp;
-}
-const bit<8> REPORT_FIXED_HEADER_LEN = 16;
-"""
-
-
 class TelemetryReport_v10(Packet):
+
+    """
+    header int_report_fixed_header_t {
+        bit<4> ver;
+        bit<4> len;
+        bit<3> nprot;
+        bit<6> rep_md_bits;
+        bit<6> reserved;
+        bit<1> d;
+        bit<1> q;
+        bit<1> f;
+        bit<6> hw_id;
+        bit<32> switch_id;
+        bit<32> seq_num;
+        bit<32> ingress_tstamp;
+    }
+    const bit<8> REPORT_FIXED_HEADER_LEN = 16;
+    """
 
     name = "INT telemetry report v1.0"
 
@@ -48,26 +47,47 @@ class TelemetryReport_v10(Packet):
         IntField("ingressTimestamp", None),
     ]
 
+class INTShim_v10(Packet):
 
-"""
-INT header version 1.0
-    header int_header_t {
-        bit<4>  ver;
-        bit<2>  rep;
-        bit<1>  c;
-        bit<1>  e;
-        bit<1>  m;
-        bit<7>  rsvd1;
-        bit<3>  rsvd2;
-        bit<5>  hop_metadata_len;#the length of the metadata added by a single INT node 4-byte words
-        bit<8>  remaining_hop_cnt; #how many switches can still add INT metadata
-        bit<16>  instruction_mask;
-        bit<16> rsvd3;
-    }
-"""
+    """
+    INT Shim header for TCP/UDP
+        header int_shim_t {
+            bit<8> type,
+            bit<8> reserved,
+            bit<8> len,
+            bit<6> dscp
+            bit<2> rr
+        }
+    """
+    name = 'INT Shim for TCP/UDP'
+
+    fields_desc = [
+        XByteField("type", None),
+        XByteField("reserved", None),
+        XByteField("len", None),
+        BitField("dscp", None, 6),
+        BitField("rsvd", None, 2)
+    ]
 
 
 class INT_v10(Packet):
+
+    """
+    INT header version 1.0
+        header int_header_t {
+            bit<4>  ver;
+            bit<2>  rep;
+            bit<1>  c;
+            bit<1>  e;
+            bit<1>  m;
+            bit<7>  rsvd1;
+            bit<3>  rsvd2;
+            bit<5>  hop_metadata_len;#the length of the metadata added by a single INT node 4-byte words
+            bit<8>  remaining_hop_cnt; #how many switches can still add INT metadata
+            bit<16>  instruction_mask;
+            bit<16> rsvd3;
+        }
+    """
 
     name = "INT v1.0"
 
