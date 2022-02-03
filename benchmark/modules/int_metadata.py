@@ -73,8 +73,8 @@ class INTMetadata:
             self.__queue_id_occups,
             self.ingress_timestamp,
             self.egress_timestamp,
-            self.lv2_in_e_port,
-            self.tx_utilizes,
+            # self.lv2_in_e_port,
+            # self.tx_utilizes,
         ] * self.__hops
         self.add_value_to_field_per_hop(5, 0)
         self.add_value_to_field_per_hop(5, 2)
@@ -95,7 +95,7 @@ class INTMetadata:
 
     def add_value_to_field_per_hop(self, value, position):
         for hop in range(0, self.__hops):
-            self.all_int_metadata[position + hop * 8] += (value * (hop + 1))
+            self.all_int_metadata[position + hop * 6] += (value * (hop + 1))
 
 
     @staticmethod

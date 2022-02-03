@@ -112,3 +112,27 @@ class INT_v10(Packet):
             "INTMetadata", [], XIntField("", None), count_from=lambda p: p.length - 2
         ),
     ]
+
+
+class EthernetTrailer(Packet):
+    """Normal ethernet trailer (4bytes)"""
+    
+    name = "EthernetTrailer"
+
+    fields_desc = [
+        IntField('trailer', 0)
+    ]
+
+class IperfEthernetTrailer(Packet):
+    """Ethernet Trailer with Iperf data (value: const 20bytes)"""
+
+    name = "Ethernet Trailer with Iperf data"
+    
+    fields_desc = [
+        IntField('trailer1', 0x00008225),
+        IntField('trailer2', 0x61d86736),
+        IntField('trailer3', 0x0004255a),
+        IntField('trailer4', 0x32333435),
+        IntField('trailer5', 0x00000000),
+    ]
+

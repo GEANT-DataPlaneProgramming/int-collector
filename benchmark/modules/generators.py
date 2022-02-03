@@ -6,7 +6,7 @@ from scapy.sendrecv import sendp, sendpfast
 from datetime import datetime
 from time import sleep
 
-from modules.headers import INTShim_v10, TelemetryReport_v10, INT_v10
+from modules.headers import INTShim_v10, TelemetryReport_v10, INT_v10, EthernetTrailer, IperfEthernetTrailer
 from modules.int_metadata import INTMetadata
 
 
@@ -137,17 +137,22 @@ class ConstantGenerator(Generator):
                 Ether()
                 / IP(src="10.0.0.1", dst="10.0.0.2")
                 / UDP(sport=5000, dport=8090)
+                / Ether()
+                / IP(src="192.168.0.1", dst="192.168.0.2")
+                / UDP(sport=5000, dport=8090)
+                / TelemetryReport_v10(ingressTimestamp=1524138290)
                 / INTShim_v10()
                 / INT_v10(
                     length=self.int_header_size,
                     hopMLen=8,
                     remainHopCnt=3,
                     ins=(
-                        1 << 7 | 1 << 6 | 1 << 5 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 1 | 1
+                        1 << 7 | 1 << 6 | 0 << 5 | 0 << 4 | 1 << 3 | 1 << 2 | 0 << 1 | 0
                     )
                     << 8,
                     INTMetadata=int_metadata.all_int_metadata,
                 )
+                /IperfEthernetTrailer()
             )
 
             self.generator_logger.info(f"{counter}. {int_metadata}")
