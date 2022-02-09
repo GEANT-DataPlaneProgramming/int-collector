@@ -32,6 +32,7 @@ typedef __u8 u8;
 
 // __packed__ size
 #define ETH_SIZE 14
+#define IPHDR_SIZE 20
 #define TCPHDR_SIZE 20
 #define UDPHDR_SIZE 8
 #define INT_SHIM_SIZE 4
@@ -328,31 +329,46 @@ int collector(struct xdp_md *ctx) {
     void* cursor = (void*)(long)ctx->data;
 
     /*
-        Parse: Ether->IP->UDP->INT.
+        Parse outer: Ether->IP->UDP
     */
 
+   //ETHERNET
     struct eth_tp *eth;
     CURSOR_ADVANCE(eth, cursor, sizeof(*eth), data_end);
 
     if (unlikely(ntohs(eth->type) != ETHTYPE_IP))
         return XDP_PASS;
+    //IPv4
     struct iphdr *ip;
     CURSOR_ADVANCE(ip, cursor, sizeof(*ip), data_end);
 
     if (unlikely(ip->protocol != IPPROTO_UDP))
         return XDP_PASS;
+    //UDP
+    struct udphdr *udp;
+    CURSOR_ADVANCE(udp, cursor, sizeof(*udp), data_end);
 
     struct ports_t *in_ports;
     CURSOR_ADVANCE(in_ports, cursor, sizeof(*in_ports), data_end);
+
     if (unlikely(ntohs(in_ports->dest) != INT_DST_PORT))
         return XDP_PASS;
 
-    // TODO: TCP with option (not fixed header len)?
     u8 remain_size = (ip->protocol == IPPROTO_UDP)?
                     (UDPHDR_SIZE - sizeof(*in_ports)) :
                     (TCPHDR_SIZE - sizeof(*in_ports));
     // u8 remain_size = UDPHDR_SIZE - sizeof(*in_ports);
     CURSOR_ADVANCE_NO_PARSE(cursor, remain_size, data_end);
+
+    /*
+    Parse inner: Etherent->IP->UDP->INT_TELE->SHIM
+    */
+    CURSOR_ADVANCE_NO_PARSE(cursor, ETH_SIZE, data_end);
+    CURSOR_ADVANCE_NO_PARSE(cursor, IPHDR_SIZE, data_end);
+    CURSOR_ADVANCE_NO_PARSE(cursor, UDPHDR_SIZE, data_end);
+
+    struct telemetry_report_v10_t *tm_rp;
+    CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
 
     CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
 
