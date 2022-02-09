@@ -421,6 +421,7 @@ int collector(struct xdp_md *ctx) {
     u8 is_tx_utilizes 	 = (INT_ins >> 8) & 0x1;
 
     u32* INT_data;
+    u64* TIMESTAMPS_data;
     u8 _num_INT_hop = num_INT_hop;
     #pragma unroll
     for (u8 i = 0; i < MAX_INT_HOP; i++) {
@@ -443,11 +444,11 @@ int collector(struct xdp_md *ctx) {
             flow_info.queue_occups[i] = ntohl(*INT_data) & 0xffff;
         }
         if (is_ingr_times) {
-            CURSOR_ADVANCE(INT_data, cursor, sizeof(*INT_data), data_end);
+            CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
             flow_info.ingr_times[i] = ntohl(*INT_data);
         }
         if (is_egr_times) {
-            CURSOR_ADVANCE(INT_data, cursor, sizeof(*INT_data), data_end);
+            CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
             flow_info.egr_times[i] = ntohl(*INT_data);
         }
         if (is_lv2_in_e_port_ids) {
