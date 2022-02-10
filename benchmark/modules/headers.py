@@ -113,7 +113,6 @@ class INT_v10(Packet):
         ),
     ]
 
-
 class EthernetTrailer(Packet):
     """Normal ethernet trailer (4bytes)"""
     

@@ -316,12 +316,11 @@ BPF_TABLE("lru_hash", struct egr_id_t, struct egr_info_t, tb_egr, 3000);
 BPF_TABLE("lru_hash", struct queue_id_t, struct queue_info_t, tb_queue, 3000);
 // BPF_TABLE("hash", u32, struct flow_info_t, tb_test, 256);
 
-
 //--------------------------------------------------------------------
 
 int collector(struct xdp_md *ctx) {
 
-    // bpf_trace_printk("recv pkt! \n");
+    //bpf_trace_printk("recv pkt! \n"); //logs are in /sys/kernel/debug/tracing/trace_pipe
 
     // return XDP_DROP;
 
@@ -335,49 +334,65 @@ int collector(struct xdp_md *ctx) {
    //ETHERNET
     struct eth_tp *eth;
     CURSOR_ADVANCE(eth, cursor, sizeof(*eth), data_end);
-
     if (unlikely(ntohs(eth->type) != ETHTYPE_IP))
         return XDP_PASS;
+    // bpf_trace_printk("ethernet -> fine\n");
+
     //IPv4
     struct iphdr *ip;
     CURSOR_ADVANCE(ip, cursor, sizeof(*ip), data_end);
 
     if (unlikely(ip->protocol != IPPROTO_UDP))
         return XDP_PASS;
+    // bpf_trace_printk("ip %i -> fine\n ", ip->protocol);
+    // bpf_trace_printk("src ip %i -> fine\n ", ntohl(ip->saddr));
+    // bpf_trace_printk("dst ip %i -> fine\n ", ntohl(ip->daddr));
+
     //UDP
-    struct udphdr *udp;
-    CURSOR_ADVANCE(udp, cursor, sizeof(*udp), data_end);
+    // struct udphdr *udp;
+    // CURSOR_ADVANCE(udp, cursor, sizeof(*udp), data_end);
+    // bpf_trace_printk("udp -> fine\n ");
 
     struct ports_t *in_ports;
     CURSOR_ADVANCE(in_ports, cursor, sizeof(*in_ports), data_end);
 
+    // bpf_trace_printk("dest port %d\n ",ntohs(in_ports->dest));
+    // bpf_trace_printk("src port %d\n ",ntohs(in_ports->source));
+    // bpf_trace_printk("int port %d\n ", INT_DST_PORT);
+
     if (unlikely(ntohs(in_ports->dest) != INT_DST_PORT))
         return XDP_PASS;
+    // bpf_trace_printk("ports %d -> fine\n ",ntohs(in_ports->dest));
 
     u8 remain_size = (ip->protocol == IPPROTO_UDP)?
                     (UDPHDR_SIZE - sizeof(*in_ports)) :
                     (TCPHDR_SIZE - sizeof(*in_ports));
     // u8 remain_size = UDPHDR_SIZE - sizeof(*in_ports);
     CURSOR_ADVANCE_NO_PARSE(cursor, remain_size, data_end);
-
+    // bpf_trace_printk("ramain_size %d -> fine\n ",remain_size);
     /*
     Parse inner: Etherent->IP->UDP->INT_TELE->SHIM
     */
     CURSOR_ADVANCE_NO_PARSE(cursor, ETH_SIZE, data_end);
+    // bpf_trace_printk("second eth -> fine\n ");
     CURSOR_ADVANCE_NO_PARSE(cursor, IPHDR_SIZE, data_end);
+    // bpf_trace_printk("second ip -> fine\n ");
     CURSOR_ADVANCE_NO_PARSE(cursor, UDPHDR_SIZE, data_end);
+    // bpf_trace_printk("second udp -> fine\n ");
 
     struct telemetry_report_v10_t *tm_rp;
     CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
+    // bpf_trace_printk("telemetry -> fine\n ");
 
-    CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
-
+    // CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
     struct INT_shim_v10_t *INT_shim;
     CURSOR_ADVANCE(INT_shim, cursor, sizeof(*INT_shim), data_end);
+    // bpf_trace_printk("shim -> fine\n ");
 
     // struct INT_md_fix_t *INT_md_fix;
     struct INT_md_fix_v10_t *INT_md_fix;
     CURSOR_ADVANCE(INT_md_fix, cursor, sizeof(*INT_md_fix), data_end);
+    // bpf_trace_printk("int -> fine\n ");
 
 
     /*
@@ -385,6 +400,7 @@ int collector(struct xdp_md *ctx) {
     */
 
     u8 INT_data_len = INT_shim->length - 3; // 3 is sizeof INT shim and md fix headers in words
+    // bpf_trace_printk("int data len %d\n ", INT_data_len);
     // should use this but is it slower?
     // u8 num_INT_hop = INT_data_len/INT_md_fix->hopMlen;
     u8 num_INT_hop = 6; // max
@@ -411,14 +427,21 @@ int collector(struct xdp_md *ctx) {
     u16 INT_ins = ntohs(INT_md_fix->ins);
     // Assume that sw_id is alway presented.
     if ((INT_ins >> 15) & 0x01 != 1) return XDP_DROP;
-
+    // bpf_trace_printk("switch id\n ");
     u8 is_in_e_port_ids  = (INT_ins >> 14) & 0x1;
+    // bpf_trace_printk("%d\n ", is_in_e_port_ids);
     u8 is_hop_latencies  = (INT_ins >> 13) & 0x1;
+    // bpf_trace_printk("%d\n ", is_hop_latencies);
     u8 is_queue_occups 	 = (INT_ins >> 12) & 0x1;
+    // bpf_trace_printk("%d\n ", is_queue_occups);
     u8 is_ingr_times 	 = (INT_ins >> 11) & 0x1;
+    // bpf_trace_printk("%d\n ", is_ingr_times);
     u8 is_egr_times 	 = (INT_ins >> 10) & 0x1;
+    // bpf_trace_printk("%d\n ", is_egr_times);
     u8 is_lv2_in_e_port_ids = (INT_ins >> 9) & 0x1;
+    // bpf_trace_printk("%d\n ", is_lv2_in_e_port_ids);
     u8 is_tx_utilizes 	 = (INT_ins >> 8) & 0x1;
+    // bpf_trace_printk("%d\n ", is_tx_utilizes);
 
     u32* INT_data;
     u64* TIMESTAMPS_data;

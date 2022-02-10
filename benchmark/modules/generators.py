@@ -18,6 +18,7 @@ class Generator:
         self.hops = hops
         self.int_header_size = hops * 8 + 3
         self.packets = []
+        self.ins_mask = 0xCC00
 
         self.generator_logger = logging.getLogger("Generator")
         self.generator_logger.setLevel(log_level)
@@ -53,10 +54,7 @@ class LinearGenerator(Generator):
                     length=self.int_header_size,
                     hopMLen=8,
                     remainHopCnt=3,
-                    ins=(
-                        1 << 7 | 1 << 6 | 1 << 5 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 1 | 1
-                    )
-                    << 8,
+                    ins=self.ins_mask,
                     INTMetadata=int_metadata.all_int_metadata,
                 )
             )
@@ -128,8 +126,8 @@ class ConstantGenerator(Generator):
 
         self.generator_logger.info("Start of sending two packets.")
 
-        int_metadata = INTMetadata(self.hops)
-        int_metadata.create_metadata()
+        int_metadata = INTMetadata(self.ins_mask, self.hops, 1)
+        # int_metadata.create_metadata()
 
         for counter in range(2):
 
@@ -146,19 +144,15 @@ class ConstantGenerator(Generator):
                     length=self.int_header_size,
                     hopMLen=8,
                     remainHopCnt=3,
-                    ins=(
-                        1 << 7 | 1 << 6 | 0 << 5 | 0 << 4 | 1 << 3 | 1 << 2 | 0 << 1 | 0
-                    )
-                    << 8,
-                    INTMetadata=int_metadata.all_int_metadata,
+                    ins=self.ins_mask,
+                    INTMetadata=int_metadata.metadata,
                 )
-                /IperfEthernetTrailer()
             )
 
             self.generator_logger.info(f"{counter}. {int_metadata}")
 
             self.packets.append(bytes(p))
-            int_metadata.edit_hop_latency(60)
+            # int_metadata.edit_hop_latency(60)
 
         repetitions = 0
 
@@ -214,8 +208,7 @@ class Editable_Generator(Generator):
                     length=self.int_header_size,
                     hopMLen=8,
                     remainHopCnt=3,
-                    ins=(1 << 7 | 1 << 6 | 1 << 5 | 1 << 4 | 1 << 3 | 1 << 2 | 1 << 1 | 1)
-                    << 8,
+                    ins=self.ins_mask,
                     INTMetadata=int_metadata.all_int_metadata,
                 )
             )
