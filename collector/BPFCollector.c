@@ -383,6 +383,7 @@ int collector(struct xdp_md *ctx) {
     struct telemetry_report_v10_t *tm_rp;
     CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
     // bpf_trace_printk("telemetry -> fine\n ");
+    // bpf_trace_printk("%d", ntohl(tm_rp->ingressTimestamp));
 
     // CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
     struct INT_shim_v10_t *INT_shim;
@@ -393,6 +394,7 @@ int collector(struct xdp_md *ctx) {
     struct INT_md_fix_v10_t *INT_md_fix;
     CURSOR_ADVANCE(INT_md_fix, cursor, sizeof(*INT_md_fix), data_end);
     // bpf_trace_printk("int -> fine\n ");
+    // bpf_trace_printk("%d", INT_md_fix->ins);
 
 
     /*
