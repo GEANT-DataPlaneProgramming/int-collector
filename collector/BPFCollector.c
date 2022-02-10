@@ -285,8 +285,8 @@ struct flow_info_t {
     u32 hop_latencies[MAX_INT_HOP];
     u16 queue_ids[MAX_INT_HOP];
     u16 queue_occups[MAX_INT_HOP];
-    u64 ingr_times[MAX_INT_HOP];
-    u64 egr_times[MAX_INT_HOP];
+    u32 ingr_times[MAX_INT_HOP];
+    u32 egr_times[MAX_INT_HOP];
     // u16 queue_congests[MAX_INT_HOP];
     u32 lv2_in_e_port_ids[MAX_INT_HOP];
     u32 tx_utilizes[MAX_INT_HOP];
@@ -394,7 +394,7 @@ int collector(struct xdp_md *ctx) {
     struct INT_md_fix_v10_t *INT_md_fix;
     CURSOR_ADVANCE(INT_md_fix, cursor, sizeof(*INT_md_fix), data_end);
     // bpf_trace_printk("int -> fine\n ");
-    // bpf_trace_printk("%d", INT_md_fix->ins);
+    // bpf_trace_printk("%u", INT_md_fix->ins);
 
 
     /*
