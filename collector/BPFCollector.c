@@ -320,7 +320,7 @@ BPF_TABLE("lru_hash", struct queue_id_t, struct queue_info_t, tb_queue, 3000);
 
 int collector(struct xdp_md *ctx) {
 
-    //bpf_trace_printk("recv pkt! \n"); //logs are in /sys/kernel/debug/tracing/trace_pipe
+    // bpf_trace_printk("recv pkt! \n"); //logs are in /sys/kernel/debug/tracing/trace_pipe
 
     // return XDP_DROP;
 
@@ -345,8 +345,8 @@ int collector(struct xdp_md *ctx) {
     if (unlikely(ip->protocol != IPPROTO_UDP))
         return XDP_PASS;
     // bpf_trace_printk("ip %i -> fine\n ", ip->protocol);
-    // bpf_trace_printk("src ip %i -> fine\n ", ntohl(ip->saddr));
-    // bpf_trace_printk("dst ip %i -> fine\n ", ntohl(ip->daddr));
+    // bpf_trace_printk("src ip %u -> fine\n ", ntohl(ip->saddr));
+    // bpf_trace_printk("dst ip %u -> fine\n ", ntohl(ip->daddr));
 
     //UDP
     // struct udphdr *udp;
@@ -437,7 +437,7 @@ int collector(struct xdp_md *ctx) {
     u8 is_queue_occups 	 = (INT_ins >> 12) & 0x1;
     // bpf_trace_printk("%d\n ", is_queue_occups);
     u8 is_ingr_times 	 = (INT_ins >> 11) & 0x1;
-    // bpf_trace_printk("%d\n ", is_ingr_times);
+    //bpf_trace_printk("%d\n ", is_ingr_times);
     u8 is_egr_times 	 = (INT_ins >> 10) & 0x1;
     // bpf_trace_printk("%d\n ", is_egr_times);
     u8 is_lv2_in_e_port_ids = (INT_ins >> 9) & 0x1;
