@@ -64,7 +64,8 @@ class InDBCollector(object):
                 event_mode="THRESHOLD",
                 thresholds_size=[50, 50, 50, 50, 50, 100], 
                 log_level=20, 
-                log_raports_lvl = 20):
+                log_raports_lvl = 20,
+                accept_all_packages = 0):
         super(InDBCollector, self).__init__()
 
         self.MAX_INT_HOP = _MAX_INT_HOP
@@ -100,7 +101,8 @@ class InDBCollector(object):
                     "-D_QUEUE_OCCUP=%s" % self.queue_occup_t,
                     "-D_QUEUE_CONGEST=%s" % self.queue_congest_t,
                     "-D_TX_UTILIZE=%s" % self.tx_utilize_t,
-                    "-D_TIME_GAP_W=%s" % self.time_gap_w_t])
+                    "-D_TIME_GAP_W=%s" % self.time_gap_w_t,
+                    "-D_ACCEPT_ALL_PACKAGES=%s" % accept_all_packages])
         self.fn_collector = self.bpf_collector.load_func("collector", BPF.XDP)
 
         # get all the info table

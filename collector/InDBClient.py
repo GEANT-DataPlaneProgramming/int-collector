@@ -106,6 +106,8 @@ def parse_params():
     )
 
     parser.add_argument("--clear", default="n", help=" [yes,y,YES,Y] - clear database")
+    parser.add_argument("--all", default=0, type=int, help="1 - accept all packages,\
+        0 - drop")
 
     return parser.parse_args()
 
@@ -147,6 +149,7 @@ if __name__ == "__main__":
         log_level=args.log_level,
         log_raports_lvl=args.log_raports_lvl,
         influx_port=args.influx_port,
+        accept_all_packages=args.all
     )
 
     for iface in args.ifaces:
@@ -181,7 +184,7 @@ if __name__ == "__main__":
             collector.lock.release()
 
             if data:
-                collector.client.write_points(points=data[0])
+                # collector.client.write_points(points=data[0])
                 logger.debug(f"Len of data: {len(data)}")
 
     event_push = threading.Thread(target=_event_push)

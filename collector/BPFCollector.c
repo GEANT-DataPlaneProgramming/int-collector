@@ -46,6 +46,8 @@ typedef __u8 u8;
 #define TX_UTILIZE _TX_UTILIZE
 #define TIME_GAP_W _TIME_GAP_W //ns
 #define WRAPPED 1
+#define ACCEPT_ALL_PACKAGES _ACCEPT_ALL_PACKAGES
+
 
 #define CURSOR_ADVANCE(_target, _cursor, _len,_data_end) \
     ({  _target = _cursor; _cursor += _len; \
@@ -421,9 +423,9 @@ int collector(struct xdp_md *ctx) {
         .ip_proto = ip->protocol,
 
         .num_INT_hop = num_INT_hop,
-        // .flow_sink_time = ntohl(tm_rp->ingressTimestamp),
-        // .seq_num = ntohl(tm_rp->seqNumber),
-        // .switchID = ntohl(tm_rp->sw_id)
+        .flow_sink_time = ntohl(tm_rp->ingressTimestamp),
+        .seq_num = ntohl(tm_rp->seqNumber),
+        .switchID = ntohl(tm_rp->sw_id)
     };
 
     u16 INT_ins = ntohs(INT_md_fix->ins);
@@ -516,7 +518,6 @@ int collector(struct xdp_md *ctx) {
 
         flow_info.is_n_flow = 1;
         is_update = 1;
-
         if (is_hop_latencies) {
             switch (num_INT_hop) {
                 case 1: flow_info.is_hop_latency = 0x01; break;
@@ -537,10 +538,11 @@ int collector(struct xdp_md *ctx) {
 
     } else {
         // only need periodically push for flow info, so we can know the live status of the flow
-        if (is_hop_latencies & (ABS(flow_info.flow_latency, flow_info_p->flow_latency) > FLOW_LATENCY))
+        if ((ABS(flow_info.flow_latency, flow_info_p->flow_latency) >= FLOW_LATENCY))
         {
 
             flow_info.is_flow = 1;
+            // bpf_trace_printk("IS_FLOW: %d", flow_info.is_flow);
             is_update = 1;
         }
 
@@ -558,7 +560,7 @@ int collector(struct xdp_md *ctx) {
             }
 
             if (unlikely(is_hop_latencies &
-                (ABS(flow_info.hop_latencies[i], flow_info_p->hop_latencies[i]) > HOP_LATENCY))) {
+                (ABS(flow_info.hop_latencies[i], flow_info_p->hop_latencies[i]) >= HOP_LATENCY))) {
 
                 flow_info.is_hop_latency |= 1 << i;
                 is_update = 1;
@@ -575,15 +577,13 @@ int collector(struct xdp_md *ctx) {
         // flow_info.pkt_cnt = flow_info_p->pkt_cnt + 1;
         // flow_info.byte_cnt = flow_info_p->byte_cnt + ntohs(ip->tot_len);
     }
-
     if (is_update)
         tb_flow.update(&flow_id, &flow_info);
 
 
-
-    /*
-        Egress info
-    */
+//     /*
+//         Egress info
+//     */
 
     struct egr_info_t *egr_info_p;
     struct egr_id_t egr_id = {};
@@ -611,7 +611,7 @@ int collector(struct xdp_md *ctx) {
                 is_update = 1;
             }
             else {
-                if (unlikely(ABS(egr_info.tx_utilize, egr_info_p->tx_utilize) > TX_UTILIZE)) {
+                if (unlikely(ABS(egr_info.tx_utilize, egr_info_p->tx_utilize) >= TX_UTILIZE)) {
 
                     flow_info.is_tx_utilize |= 1 << i;
                     is_update = 1;
@@ -625,10 +625,9 @@ int collector(struct xdp_md *ctx) {
         }
     }
 
-
-    /*
-        Queue info
-    */
+//     /*
+//         Queue info
+//     */
 
     struct queue_info_t *queue_info_p;
     struct queue_id_t queue_id = {};
@@ -657,7 +656,7 @@ int collector(struct xdp_md *ctx) {
 
             } else {
 
-                if (unlikely(ABS(queue_info.occup, queue_info_p->occup) > QUEUE_OCCUP)) {
+                if (unlikely(ABS(queue_info.occup, queue_info_p->occup) >= QUEUE_OCCUP)) {
                     flow_info.is_queue_occup |= 1 << i;
                     is_update = 1;
                 }
@@ -669,16 +668,18 @@ int collector(struct xdp_md *ctx) {
             _num_INT_hop--;
         }
     }
-
-
+    
     // submit event info to user space
     if (unlikely(flow_info.is_n_flow |
         flow_info.is_hop_latency | flow_info.is_queue_occup | flow_info.is_tx_utilize
-        | flow_info.is_flow
-        )
+        | flow_info.is_flow | ACCEPT_ALL_PACKAGES == 1)
     )
+    {
         events.perf_submit(ctx, &flow_info, sizeof(flow_info));
+//         // bpf_trace_printk("EVENT! \n");
+    }
 
 DROP:
+    // bpf_trace_printk("drop \n");
     return XDP_DROP;
 }
