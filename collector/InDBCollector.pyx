@@ -32,8 +32,8 @@ cdef struct Event:
     unsigned int   hop_latencies[__MAX_INT_HOP]
     unsigned short queue_ids[__MAX_INT_HOP]
     unsigned short queue_occups[__MAX_INT_HOP]
-    unsigned int   ingr_times[__MAX_INT_HOP]
-    unsigned int   egr_times[__MAX_INT_HOP]
+    unsigned int ingr_times[__MAX_INT_HOP]
+    unsigned int egr_times[__MAX_INT_HOP]
     unsigned int   lv2_in_e_port_ids[__MAX_INT_HOP]
     unsigned int   tx_utilizes[__MAX_INT_HOP]
     unsigned int   flow_latency
@@ -79,6 +79,7 @@ class InDBCollector(object):
         self.queue_congest_t = thresholds_size[3]
         self.tx_utilize_t = thresholds_size[4]
         self.time_gap_w_t = thresholds_size[5]
+        self.accept_all_packages = accept_all_packages
 
         self.reports = []
         self.last_dstts = {} # save last `dstts` per each monitored flow
@@ -170,24 +171,23 @@ class InDBCollector(object):
             'time': int(time.time()*1e9), # use local time because bmv2 clock is a little slower making time drift 
             "fields": {}
         }
-        
+
         # combine flow id with hop index 
         flow_hop_key = (*flow_key, index)
         
         # # add sink_jitter only if can be calculated (not first packet in the flow)  
         if flow_hop_key in self.last_hop_ingress_timestamp:
             json_report["fields"]["hop_jitter"] =  ingr_times[index] - self.last_hop_ingress_timestamp[flow_hop_key]
-            
+
         if hop_latencies[index]:
             json_report["fields"]["hop_delay"] = hop_latencies[index]
-            
+
         if ingr_times[index] and index > 0:
             json_report["fields"]["link_delay"] = ingr_times[index] - self.last_hop_delay
             self.last_hop_delay = ingr_times[index]
-            
+
         if ingr_times[index]:
             self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
-        
         logger_raports.debug(f"HOP - report {index}\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
@@ -259,24 +259,24 @@ class InDBCollector(object):
                 'protocol': event.ip_proto,       
             }
 
-            if (event.is_n_flow or event.is_flow) and event_flag == False:
+            if (event.is_n_flow or event.is_flow) or self.accept_all_packages and event_flag == False :
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
                 event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                 event_flag = True
 
-            if event.is_hop_latency and event_flag == False:
+            if event.is_hop_latency or self.accept_all_packages and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_hop_latency >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_tx_utilize and event_flag == False:
+            if event.is_tx_utilize or self.accept_all_packages and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_tx_utilize >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_queue_occup and event_flag == False:
+            if event.is_queue_occup or self.accept_all_packages and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_queue_occup >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))

@@ -241,7 +241,7 @@ struct ingr_id_t {
 };
 
 struct ingr_info_t {
-    u32 ingr_time;
+    u64 ingr_time;
 };
 
 struct egr_id_t {
@@ -250,8 +250,8 @@ struct egr_id_t {
 };
 
 struct egr_info_t {
-    u32 tx_utilize;
-    u32 egr_time;
+    u64 tx_utilize;
+    u64 egr_time;
 };
 
 struct queue_id_t {
@@ -287,8 +287,8 @@ struct flow_info_t {
     u32 hop_latencies[MAX_INT_HOP];
     u16 queue_ids[MAX_INT_HOP];
     u16 queue_occups[MAX_INT_HOP];
-    u32 ingr_times[MAX_INT_HOP];
-    u32 egr_times[MAX_INT_HOP];
+    u64 ingr_times[MAX_INT_HOP];
+    u64 egr_times[MAX_INT_HOP];
     // u16 queue_congests[MAX_INT_HOP];
     u32 lv2_in_e_port_ids[MAX_INT_HOP];
     u32 tx_utilizes[MAX_INT_HOP];
