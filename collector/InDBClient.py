@@ -184,7 +184,7 @@ if __name__ == "__main__":
             collector.lock.release()
 
             if data:
-                # collector.client.write_points(points=data[0])
+                collector.client.write_points(points=data[0])
                 logger.debug(f"Len of data: {len(data)}")
 
     event_push = threading.Thread(target=_event_push)
