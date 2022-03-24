@@ -169,7 +169,7 @@ class InDBCollector(object):
             "measurement": "int_telemetry",
             "tags": tags,
             'time': int(time.time()*1e9), # use local time because bmv2 clock is a little slower making time drift 
-            "fields": {}
+            "fields": {"empty": 0}
         }
 
         # combine flow id with hop index 
@@ -188,6 +188,11 @@ class InDBCollector(object):
 
         if ingr_times[index]:
             self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
+        
+        keys = list(json_report["fields"].keys())
+        if len(keys) > 1 and "empty" in keys:
+            del json_report['fields']['empty']
+
         logger_raports.debug(f"HOP - report {index}\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
