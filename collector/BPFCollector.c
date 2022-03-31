@@ -291,7 +291,7 @@ struct flow_info_t {
     u64 egr_times[MAX_INT_HOP];
     // u16 queue_congests[MAX_INT_HOP];
     u32 lv2_in_e_port_ids[MAX_INT_HOP];
-    u32 tx_utilizes[MAX_INT_HOP];
+    u64 tx_utilizes[MAX_INT_HOP];
 
     u32 flow_latency;
     u32 flow_sink_time;

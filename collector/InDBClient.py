@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
             if data:
                 logger.debug(f"Len of data: {len(data)}")
-                logger.debug(f"DATA: {data}")
+                # logger.debug(f"DATA: {data}")
                 collector.client.write_points(points=data[0])
 
     event_push = threading.Thread(target=_event_push)
