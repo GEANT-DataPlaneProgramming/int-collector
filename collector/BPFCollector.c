@@ -472,11 +472,11 @@ int collector(struct xdp_md *ctx) {
         }
         if (is_ingr_times) {
             CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
-            flow_info.ingr_times[i] = ntohl(*INT_data);
+            flow_info.ingr_times[i] = ntohl(*TIMESTAMPS_data);
         }
         if (is_egr_times) {
             CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
-            flow_info.egr_times[i] = ntohl(*INT_data);
+            flow_info.egr_times[i] = ntohl(*TIMESTAMPS_data);
         }
         if (is_lv2_in_e_port_ids) {
             CURSOR_ADVANCE(INT_data, cursor, sizeof(*INT_data), data_end);
