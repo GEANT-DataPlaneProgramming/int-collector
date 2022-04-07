@@ -11,7 +11,7 @@ RUN git clone https://github.com/iovisor/bcc.git
 RUN mkdir bcc/build
 
 WORKDIR bcc/build
-# RUN git checkout tags/v0.24.0 #use this line when bcc will fail installation
+RUN git checkout tags/v0.24.0 #use this line when bcc will fail installation
 RUN cmake ..
 RUN make && make install
 
