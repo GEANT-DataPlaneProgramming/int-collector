@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 RUN apt-get update
+RUN apt-get -y install linux-image-4.15.0-154-generic linux-headers-4.15.0-154-generic
 RUN apt-get -y install python3 python3-distutils python3-pip
 RUN apt-get -y install sudo linux-headers-$(uname -r) bison build-essential cmake flex git libedit-dev \
   libllvm6.0 llvm-6.0-dev libclang-6.0-dev python zlib1g-dev libelf-dev libfl-dev
@@ -10,6 +11,7 @@ RUN git clone https://github.com/iovisor/bcc.git
 RUN mkdir bcc/build
 
 WORKDIR bcc/build
+# RUN git checkout tags/v0.24.0 #use this line when bcc will fail installation
 RUN cmake ..
 RUN make && make install
 
@@ -38,10 +40,9 @@ ENV THRESHOLDS_SIZE 50 50 50 50 50 100
 ENV LOG_LEVEL 20
 ENV LOG_RAPORTS_LEVEL 20
 ENV CLEAR n
-ENV ACCEPT_ALL_PACKAGES 0
 
 ENTRYPOINT python3 InDBClient.py $IFACE -H $INFLUX_ADDRESS -INFP $INFLUX_PORT -i $INT_PORT -D $DATABASE_NAME -p $PERIOD -P $EVENT_PERIOD \
--T $THRESHOLDS_SIZE -l $LOG_LEVEL -l_rap $LOG_RAPORTS_LEVEL --clear $CLEAR --all $ACCEPT_ALL_PACKAGES
+-T $THRESHOLDS_SIZE -l $LOG_LEVEL -l_rap $LOG_RAPORTS_LEVEL --clear $CLEAR
 
 
 
