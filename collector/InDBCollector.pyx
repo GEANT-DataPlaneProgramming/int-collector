@@ -32,8 +32,8 @@ cdef struct Event:
     unsigned int   hop_latencies[__MAX_INT_HOP]
     unsigned short queue_ids[__MAX_INT_HOP]
     unsigned short queue_occups[__MAX_INT_HOP]
-    unsigned int ingr_times[__MAX_INT_HOP]
-    unsigned int egr_times[__MAX_INT_HOP]
+    unsigned long  ingr_times[__MAX_INT_HOP]
+    unsigned long  egr_times[__MAX_INT_HOP]
     unsigned int   lv2_in_e_port_ids[__MAX_INT_HOP]
     unsigned int   tx_utilizes[__MAX_INT_HOP]
     unsigned int   flow_latency

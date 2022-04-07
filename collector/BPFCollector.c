@@ -291,7 +291,7 @@ struct flow_info_t {
     u64 egr_times[MAX_INT_HOP];
     // u16 queue_congests[MAX_INT_HOP];
     u32 lv2_in_e_port_ids[MAX_INT_HOP];
-    u32 tx_utilizes[MAX_INT_HOP];
+    u64 tx_utilizes[MAX_INT_HOP];
 
     u32 flow_latency;
     u32 flow_sink_time;
@@ -472,11 +472,11 @@ int collector(struct xdp_md *ctx) {
         }
         if (is_ingr_times) {
             CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
-            flow_info.ingr_times[i] = ntohl(*INT_data);
+            flow_info.ingr_times[i] = ntohl(*TIMESTAMPS_data);
         }
         if (is_egr_times) {
             CURSOR_ADVANCE(TIMESTAMPS_data, cursor, sizeof(*TIMESTAMPS_data), data_end);
-            flow_info.egr_times[i] = ntohl(*INT_data);
+            flow_info.egr_times[i] = ntohl(*TIMESTAMPS_data);
         }
         if (is_lv2_in_e_port_ids) {
             CURSOR_ADVANCE(INT_data, cursor, sizeof(*INT_data), data_end);
