@@ -264,24 +264,24 @@ class InDBCollector(object):
                 'protocol': event.ip_proto,       
             }
 
-            if (event.is_n_flow or event.is_flow) or self.accept_all_packages and event_flag == False :
+            if (event.is_n_flow or event.is_flow or self.accept_all_packages) and event_flag == False:
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
                 event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                 event_flag = True
 
-            if event.is_hop_latency or self.accept_all_packages and event_flag == False :
+            if (event.is_hop_latency or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_hop_latency >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_tx_utilize or self.accept_all_packages and event_flag == False :
+            if (event.is_tx_utilize or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_tx_utilize >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
                         event_flag = True
 
-            if event.is_queue_occup or self.accept_all_packages and event_flag == False :
+            if (event.is_queue_occup or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_queue_occup >> i) & 0x01):
                         event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
