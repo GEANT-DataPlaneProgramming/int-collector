@@ -374,6 +374,16 @@ int collector(struct xdp_md *ctx) {
     // u8 remain_size = UDPHDR_SIZE - sizeof(*in_ports);
     CURSOR_ADVANCE_NO_PARSE(cursor, remain_size, data_end);
     // bpf_trace_printk("ramain_size %d -> fine\n ",remain_size);
+
+    struct telemetry_report_v10_t *tm_rp;
+    CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
+    // bpf_trace_printk("VER: %x\n", ntohl(tm_rp->ver));
+    // bpf_trace_printk("LEN: %x\n", ntohl(tm_rp->len));
+    // bpf_trace_printk("FLOW_SINK_TIME: %lx\n", ntohl(tm_rp->ingressTimestamp));
+    // bpf_trace_printk("SW_ID: %lx\n", ntohl(tm_rp->sw_id));
+    // bpf_trace_printk("SEQ NUM: %lu\n", ntohl(tm_rp->seqNumber));
+    // bpf_trace_printk("telemetry -> fine\n ");
+
     /*
     Parse inner: Etherent->IP->UDP->INT_TELE->SHIM
     */
@@ -383,11 +393,6 @@ int collector(struct xdp_md *ctx) {
     // bpf_trace_printk("second ip -> fine\n ");
     CURSOR_ADVANCE_NO_PARSE(cursor, UDPHDR_SIZE, data_end);
     // bpf_trace_printk("second udp -> fine\n ");
-
-    struct telemetry_report_v10_t *tm_rp;
-    CURSOR_ADVANCE(tm_rp, cursor, sizeof(*tm_rp), data_end);
-    // bpf_trace_printk("telemetry -> fine\n ");
-    // bpf_trace_printk("%d", ntohl(tm_rp->ingressTimestamp));
 
     // CURSOR_ADVANCE_NO_PARSE(cursor, INT_SHIM_SIZE, data_end);
     struct INT_shim_v10_t *INT_shim;
@@ -429,6 +434,8 @@ int collector(struct xdp_md *ctx) {
         .seq_num = ntohl(tm_rp->seqNumber),
         .switchID = ntohl(tm_rp->sw_id)
     };
+    
+    // bpf_trace_printk("%lu\n ", flow_info.seq_num);
 
     u16 INT_ins = ntohs(INT_md_fix->ins);
     // Assume that sw_id is alway presented.

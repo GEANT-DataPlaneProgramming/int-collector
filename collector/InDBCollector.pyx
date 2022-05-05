@@ -35,7 +35,7 @@ cdef struct Event:
     unsigned long  ingr_times[__MAX_INT_HOP]
     unsigned long  egr_times[__MAX_INT_HOP]
     unsigned int   lv2_in_e_port_ids[__MAX_INT_HOP]
-    unsigned int   tx_utilizes[__MAX_INT_HOP]
+    unsigned long   tx_utilizes[__MAX_INT_HOP]
     unsigned int   flow_latency
     unsigned int   flow_sink_time
     unsigned char  is_n_flow
@@ -124,11 +124,11 @@ class InDBCollector(object):
         logger.setLevel(self.log_level)
         logger_raports.setLevel(self.log_raports_lvl)
 
-    def prepare_e2e_report(self, flow_id, ingr_times, seq_num, flow_key, last_hop_index):        
+    def prepare_e2e_report(self, flow_id, ingr_times, seq_num, flow_key, last_hop_index, num_INT_hop):        
         
         try:
-            origin_timestamp = ingr_times[0]
-            destination_timestamp = ingr_times[last_hop_index]
+            origin_timestamp = ingr_times[num_INT_hop-1]
+            destination_timestamp = ingr_times[0]
         except Exception as e:
             origin_timestamp, destination_timestamp = 0, 0
         
@@ -146,6 +146,7 @@ class InDBCollector(object):
         
         # add sink_jitter only if can be calculated (not first packet in the flow)  
         if flow_key in self.last_dstts:
+            # logger.debug(f"FLOW KEY: {flow_key}, LAST DSTTS: {self.last_dstts}")
             json_report["fields"]["sink_jitter"] = 1.0*destination_timestamp - self.last_dstts[flow_key]
         
         # # add reordering only if can be calculated (not first packet in the flow)  
@@ -154,14 +155,15 @@ class InDBCollector(object):
                         
         # # save dstts for purpose of sink_jitter calculation
         self.last_dstts[flow_key] = destination_timestamp
-        
+        # logger_raports.debug(self.last_dstts)
+
         # # save dstts for purpose of sink_jitter calculation
         self.last_reordering[flow_key] = seq_num
 
         logger_raports.debug(f"E2E report\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
-    def prepare_hop_report(self, flow_id, index, flow_key, hop_latencies, ingr_times):
+    def prepare_hop_report(self, flow_id, index, flow_key, hop_latency, ingr_time, num_INT_hop):
         # each INT hop metadata are sent as independed json message to Influx
         tags = copy(flow_id)
         tags['hop_index'] = index
@@ -171,23 +173,23 @@ class InDBCollector(object):
             'time': int(time.time()*1e9), # use local time because bmv2 clock is a little slower making time drift 
             "fields": {"empty": 0}
         }
-
+        # logger_raports.debug(f"INGR_TIME {ingr_time}\n")  
         # combine flow id with hop index 
-        flow_hop_key = (*flow_key, index)
-        
-        # # add sink_jitter only if can be calculated (not first packet in the flow)  
+        flow_hop_key = (flow_key, index)
+        # logger.debug(f"FLOW HOP: {flow_key}, FLOW HOP KEY: {flow_hop_key}")
+
         if flow_hop_key in self.last_hop_ingress_timestamp:
-            json_report["fields"]["hop_jitter"] =  ingr_times[index] - self.last_hop_ingress_timestamp[flow_hop_key]
+            json_report["fields"]["hop_jitter"] =  ingr_time - self.last_hop_ingress_timestamp[flow_hop_key]
 
-        if hop_latencies[index]:
-            json_report["fields"]["hop_delay"] = hop_latencies[index]
+        if hop_latency:
+            json_report["fields"]["hop_delay"] = hop_latency
 
-        if ingr_times[index] and index > 0:
-            json_report["fields"]["link_delay"] = ingr_times[index] - self.last_hop_delay
-            self.last_hop_delay = ingr_times[index]
+        if ingr_time and index > 0:
+            json_report["fields"]["link_delay"] = ingr_time - self.last_hop_delay
+            self.last_hop_delay = ingr_time
 
-        if ingr_times[index]:
-            self.last_hop_ingress_timestamp[flow_hop_key] = ingr_times[index]
+        if ingr_time:
+            self.last_hop_ingress_timestamp[flow_hop_key] = ingr_time   
         
         keys = list(json_report["fields"].keys())
         if len(keys) > 1 and "empty" in keys:
@@ -196,24 +198,30 @@ class InDBCollector(object):
         logger_raports.debug(f"HOP - report {index}\n {json.dumps(json_report, indent = 4)}") 
         return json_report
 
-    def prepare_reports(self, flow_id, hop_latencies, seq_num, ingr_times, egr_times):
+    def prepare_reports(self, flow_id, hop_latencies, seq_num, ingr_times, egr_times, num_INT_hop):
         flow_key = "%(srcip)s, %(dstip)s, %(srcp)s, %(dstp)s, %(protocol)s" % flow_id 
         reports = []
 
-        for index in range(_MAX_INT_HOP):
-            if ingr_times[index] == 0:
-                last_hop_index = index - 1
-                last_ingr_time = ingr_times[last_hop_index]
-                break
-        else:
-            last_hop_index = 5
-            last_ingr_time = ingr_times[last_hop_index]
-
-        reports.append(self.prepare_e2e_report(flow_id, ingr_times, seq_num, flow_key, last_hop_index))
+        # for index in range(_MAX_INT_HOP):
+        #     if ingr_times[index] == 0:
+        #         last_hop_index = index - 1
+        #         last_ingr_time = ingr_times[last_hop_index]
+        #         break
+        # else:
+        #     last_hop_index = 5
+        #     last_ingr_time = ingr_times[last_hop_index]
+        last_hop_index = 0
+        last_ingr_time = ingr_times[last_hop_index]
+        reports.append(self.prepare_e2e_report(flow_id, ingr_times, seq_num, flow_key, last_hop_index, num_INT_hop))
 
         self.last_hop_delay = last_ingr_time
-        for index in range(last_hop_index+1):
-            reports.append(self.prepare_hop_report(flow_id, index, flow_key, hop_latencies, ingr_times))
+
+        revert_hop_index = 0
+        for index in range(num_INT_hop-1, -1, -1):
+            hop_ingr_time = ingr_times[revert_hop_index]
+            hop_latency = hop_latencies[revert_hop_index]
+            reports.append(self.prepare_hop_report(flow_id, index, flow_key, hop_latency, hop_ingr_time, num_INT_hop))
+            revert_hop_index += 1
         
         logger_raports.debug(f'\n{"*"*50}')
 
@@ -263,28 +271,28 @@ class InDBCollector(object):
                 'dstp': event.dst_port,
                 'protocol': event.ip_proto,       
             }
-
+            # logger.debug(f"SEQ NUM: {event.seq_num}")
             if (event.is_n_flow or event.is_flow or self.accept_all_packages) and event_flag == False:
                 path_str = ":".join(str(event.sw_ids[i]) for i in reversed(range(0, event.num_INT_hop)))
-                event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times, event.num_INT_hop))
                 event_flag = True
 
             if (event.is_hop_latency or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_hop_latency >> i) & 0x01):
-                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times, event.num_INT_hop))
                         event_flag = True
 
             if (event.is_tx_utilize or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_tx_utilize >> i) & 0x01):
-                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times, event.num_INT_hop))
                         event_flag = True
 
             if (event.is_queue_occup or self.accept_all_packages) and event_flag == False :
                 for i in range(0, event.num_INT_hop):
                     if ((event.is_queue_occup >> i) & 0x01):
-                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times))
+                        event_data.append(self.prepare_reports(flow_id, event.hop_latencies, event.seq_num, event.ingr_times, event.egr_times, event.num_INT_hop))
                         event_flag = True
 
             event_flag = False
