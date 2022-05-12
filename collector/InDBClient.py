@@ -1,12 +1,12 @@
-from __future__ import print_function
-
 import argparse
 import threading
 import time
 import sys
 import logging
 
-import pyximport; pyximport.install()
+import pyximport
+
+pyximport.install()
 import InDBCollector
 
 logging.basicConfig(level=logging.INFO)
@@ -106,8 +106,13 @@ def parse_params():
     )
 
     parser.add_argument("--clear", default="n", help=" [yes,y,YES,Y] - clear database")
-    parser.add_argument("--all", default=0, type=int, help="1 - accept all packages,\
-        0 - drop")
+    parser.add_argument(
+        "--all",
+        default=0,
+        type=int,
+        help="1 - accept all packages, thresholds are disabled,\
+        0 - drop if package don't exceed threshold or condition isn't fulfill ",
+    )
 
     return parser.parse_args()
 
@@ -149,7 +154,7 @@ if __name__ == "__main__":
         log_level=args.log_level,
         log_raports_lvl=args.log_raports_lvl,
         influx_port=args.influx_port,
-        accept_all_packages=args.all
+        accept_all_packages=args.all,
     )
 
     for iface in args.ifaces:

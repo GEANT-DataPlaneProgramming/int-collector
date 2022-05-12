@@ -23,6 +23,20 @@ This int-collector is a modified version of the following project: [BPFCollector
 The INT collector implementation changes and testing was done within the GEANT Data Plane Programmibilty activity:
 * https://wiki.geant.org/display/NETDEV/INT
 
+Currently collector can parse only packets with this structure:
+
+```
+   ├── Ethernet 
+   ├── IPv4 
+   ├── UDP
+   ├── Telemetry Report
+   ├── Ethernet (inner)
+   ├── IPv4 (inner)
+   ├── UDP (inner)
+   ├── INT Shim
+   ├── INT 
+   └── INT Metadata (max 6 hops)
+```
 
 # __Installation__
 ## Collector setup
@@ -44,7 +58,7 @@ The INT collector implementation changes and testing was done within the GEANT D
 
 ## Server setup
 
-* InfluxDB python client requires InfluxDB sever v1.2.4:
+* InfluxDB can be installed from package:
    ``` shell
       wget https://dl.influxdata.com/influxdb/releases/influxdb_1.2.4_amd64.deb
       sudo dpkg -i influxdb_1.2.4_amd64.deb
@@ -52,11 +66,18 @@ The INT collector implementation changes and testing was done within the GEANT D
    ```
    Package of InfluxDB is available in folder: `additional_packages/influxdb_1.2.4_amd64.deb`.
 
+* Or you can install int-analytics module from our repository:
+
+   https://github.com/GEANT-DataPlaneProgramming/int-analytics
+
 # __Usage__
 
-* Collector captures UDP packages with port 8090. If you want to change a port you must run a collector with a specific argument:
+* You can run collector as a python proccess or docker container. If you want to run as a container, you must go to "[__Start in Docker container__](#start-in-docker-container)" section.
+
+* Collector default captures UDP packages with port 8090. If you want to change a port you must run a collector with a specific argument:
 
    ```shell
+   cd collector/
    sudo python3 InDBClient.py {interface_name} -i {new_port}
    ```
 
@@ -66,7 +87,7 @@ The INT collector implementation changes and testing was done within the GEANT D
     sudo ip link set dev veth_0 up
     sudo ip link set dev veth_1 up
   ```
-  A script which creates interfaces is available in folder `int-collector/scripts/`:
+  A simple script which creates interfaces is available in folder `int-collector/scripts/`:
   ```
   cd int-collector
   sudo sh scipts/create_vinterfaces.sh
@@ -81,52 +102,68 @@ The INT collector implementation changes and testing was done within the GEANT D
 ## Notes
 
 * If InfluxDB server does not run in the same machine as the collector, we need to specify the server address with `-H` option when running `InDBClient.py`.
-* Run the collector with `-h` option for more help. If there are any missing libraries, install them using `pip`.
-* INT Telemetry reports in pcap file can be created using `benchmark/INTReport.py` or `benchmark/int_package_generator.py`.
+
+* Run the collector with `-h` option for more help. If there are any missing libraries, install them using `pip3 install -r requirements.txt`.
+
 * If there are errors (such as _cannot allocate memory_), eBPF program cannot load. In that case, please ensure that the network interfaces, on which INTCollector works, has XDP support by current kernel. Check [here](https://github.com/iovisor/bcc/blob/master/docs/kernel-versions.md#xdp).
 
-## Test
+<!-- ## Test
 End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
 ``` shell
    sudo pip3 install pytest
    sudo python3 -m pytest -v
-```
+``` -->
 
 ## All starting arguments
 
- ```shell
-   -h, --help              show this help message and exit
-   -i INT_PORT, --int_port INT_PORT
-                           Destination port of INT Telemetry reports. Default:
-                           8090
-   -H HOST, --host HOST    InfluxDB server address. Default: localhost
-   -INFP INFLUX_PORT, --influx_port INFLUX_PORT
-                           InfluxDB server port. Default: 8086
-   -D DATABASE, --database DATABASE
-                           Database name. Default: int_telemetry_db
-   -p PERIOD, --period PERIOD
-                           Time period to push data in normal condition. Default:
-                           1
-   -P EVENT_PERIOD, --event_period EVENT_PERIOD
-                           Time period to push event data. Default: 0
-   -t, --int_time          Use INT timestamp instead of local time
-   -l LOG_LEVEL, --log_level LOG_LEVEL
-                           CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20;
-                           DEBUG = 10; NOTSET = 0; Default: 20
-   -l_rap LOG_RAPORTS_LVL, --log_raports_lvl LOG_RAPORTS_LVL
-                           DEBUG = 10 - enables logging of raports. Default: 20
-   --clear CLEAR           [yes,y,YES,Y] - clear database
+ ```
+InfluxBD INTCollector client.
+
+positional arguments:
+  ifaces                List of ifaces to receive INT reports.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INT_PORT, --int_port INT_PORT
+                        Destination port of INT Telemetry reports. Default:
+                        8090
+  -H HOST, --host HOST  InfluxDB server address. Default: localhost
+  -INFP INFLUX_PORT, --influx_port INFLUX_PORT
+                        InfluxDB server port. Default: 8086
+  -D DATABASE, --database DATABASE
+                        Database name. Default: int_telemetry_db
+  -p PERIOD, --period PERIOD
+                        Time period to push data in normal condition. Default:
+                        1
+  -P EVENT_PERIOD, --event_period EVENT_PERIOD
+                        Time period to push event data. Default: 0
+  -t, --int_time        Use INT timestamp instead of local time
+  -T THRESHOLDS_SIZE [THRESHOLDS_SIZE ...], --thresholds_size THRESHOLDS_SIZE [THRESHOLDS_SIZE ...]
+                        Size of thresholfs. List of arguments is required.
+                        [HOP_LATENCY, FLOW_LATENCY, QUEUE_OCCUP,
+                        QUEUE_CONGEST, TX_UTILIZE, TIME_GAP_W] Default list:
+                        [50, 50, 50, 50, 50, 100]
+  -l LOG_LEVEL, --log_level LOG_LEVEL
+                        CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20;
+                        DEBUG = 10; NOTSET = 0; Default: 20
+  -l_rap LOG_RAPORTS_LVL, --log_raports_lvl LOG_RAPORTS_LVL
+                        DEBUG = 10 - enables logging of raports. Default: 20
+  --clear CLEAR         [yes,y,YES,Y] - clear database
+  --all ALL             1 - accepts all packages, thresholds are disabled, 0 -
+                        drops if packet does not exceed threshold or condition
+                        isn't fulfilled
+
    ```
 
-## Fragment of code resposible for filtering the packages
+## Fragment of code responsible for filtering the packets
 
-   The fragment of code mentioned below is resposible for passing packages, which meet the conditions, to the collector. The packages which don't meet the conditions are transmitted to the normal path of transmission. 
+   The fragment of code mentioned below is resposible for passing packets, which meet the conditions, to the collector. The packets which don't meet the conditions are transmitted to the normal path of transmission. 
 
    Firstly, the Ethernet header's presence is checked. If it is present, the type of protocol is checked in IP header. If the protocol type is UDP, the destination port is checked. Destination port must be the same as the port indicated while running the INTCollector (argument `-i`, default: 8090).
 
    If you want to change the filtering of packages, you must change this [fragment of code](https://github.com/GEANT-DataPlaneProgramming/int-collector/blob/2f5f07adeb46499890363f327bcefec992654f80/collector/BPFCollector.c#L376). 
 
-   ```c
+   ```
    struct eth_tp *eth;
       CURSOR_ADVANCE(eth, cursor, sizeof(*eth), data_end);
 
@@ -146,11 +183,11 @@ End to end tests for InfluxDB only. InfluxDB needs to run in localhost.
 
 
 # __Start in Docker container__
-Container available on DockerHub works only on host with kernel 4.15.0-154-generic.
+Container available on DockerHub works only on host with kernel 4.15.0-176-generic.
 
 Image: https://hub.docker.com/repository/docker/jaxa/int_collector
 
-Instructions for the owner of kernel 4.15.0-154-generic:
+Instructions for the owner of kernel 4.15.0-176-generic:
 - docker pull jaxa/int_collector
 - docker run --name int-collector --privileged --network host -e IFACE=enp0s3 -e INFLUX_ADDRESS=localhost -e INFLUX_PORT=8086 -d jaxa/int_collector
 
@@ -170,13 +207,14 @@ Available environment variables:
 |     LOG_LEVEL     | Displaying logs in terminal. This option makes sense when the container is launched in an interactive mode.</br> Available options: > 20 - no log </br> 20 - info </br> 10 - debug |        30        |
 | LOG_RAPORTS_LEVEL |    Displaying raports in terminal. This option makes sense when the container is launched in an interactive mode.</br> Available options: > 10 - no raports log</br> 10 - debug    |        20        |
 |       CLEAR       |                                                                          yes,y,YES,Y - clean the database                                                                          |        n         |
-| THRESHOLDS_SIZE | Allow to set thresholds size. The order of the thresholds in the list: </br> [HOP_LATENCY, FLOW_LATENCY, QUEUE_OCCUP, QUEUE_CONGEST, TX_UTILIZE, TIME_GAP_W] | 50 50 50 50 50 100 |
+| THRESHOLDS_SIZE | Allows to set thresholds size. The order of the thresholds in the list: </br> [HOP_LATENCY, FLOW_LATENCY, QUEUE_OCCUP, QUEUE_CONGEST, TX_UTILIZE, TIME_GAP_W] | 50 50 50 50 50 100 |
+| ACCEPT_ALL_PACKAGES | Disable all thresholds and contions to create event. Set 1 value when you want to parse all packets. | 0 |
 </div>
 
 If kernel is in an older version, you can update it:
 - sudo apt-get update
 - sudo apt-get upgrade
-- sudo apt-get install linux-image-4.15.0-154-generic linux-headers-4.15.0-154-generic 
+- sudo apt-get install linux-image-4.15.0-176-generic linux-headers-4.15.0-176-generic 
 - reboot
 
 If you don't want to update kernel or it's in a newer version, you have to build a new docker image from the source:
@@ -184,7 +222,7 @@ If you don't want to update kernel or it's in a newer version, you have to build
 - cd INT-collector
 - docker build -t int-collector .
 
-# __INT packages generator__
+<!-- # __INT packages generator__
 
 [`Int_package_generator.py`](https://github.com/GEANT-DataPlaneProgramming/int-collector/blob/master/benchmark/int_package_generator.py) can generate INT packets and send them to a specified interface. 
 
@@ -204,7 +242,8 @@ Optional arguments:
 
       -v {0,1} - Scapy verbose, 0 - disable, 1 - enable. Default: 0;
 
-      -log LOG_LEVEL - log level - CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20; DEBUG = 10; NOTSET = 0; Default: 20.
+      -log LOG_LEVEL - log level - CRITICAL = 50 ERROR = 40; WARNING = 30; INFO = 20; DEBUG = 10; NOTSET = 0; Default: 20. -->
+
 # __Publication__
 - N. V. Tu, J. Hyun, G. Y. Kim, J. Yoo and J. W. Hong, "INTCollector: A High-performance Collector for In-band Network Telemetry," *2018 14th International Conference on Network and Service Management (CNSM)*, Rome, 2018, pp. 10-18.
 
